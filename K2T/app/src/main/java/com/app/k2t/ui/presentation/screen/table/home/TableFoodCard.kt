@@ -2,343 +2,150 @@ package com.app.k2t.ui.presentation.screen.table.home
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
-import com.app.k2t.firebase.model.Details
 import com.app.k2t.firebase.model.Food
-import com.app.k2t.R
-import com.app.k2t.ui.presentation.viewmodel.CartViewModel
-import com.app.k2t.ui.theme.K2TTheme
-import java.util.*
+import java.util.Locale
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TableFoodCard(
+fun MenuItemCard(
     food: Food,
-    modifier: Modifier = Modifier,
-    onClick: () -> Unit = {},
-    onAddToCart: (Food) -> Unit = {},
-    cartViewModel: CartViewModel = viewModel()
+    onCardClick: () -> Unit,
+    onAddToCart: () -> Unit,
+    isItemInCart: Boolean,
+    modifier: Modifier = Modifier
 ) {
-    val checkFoodInCart = cartViewModel.isFoodInCart(food.foodId ?: "").collectAsState(initial = false).value
-
     Card(
-        onClick = onClick,
-        modifier = modifier
-            .fillMaxWidth()
-            .aspectRatio(0.75f),
-        elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
-        shape = RoundedCornerShape(18.dp),
+        onClick = onCardClick,
+        modifier = modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
-        )
+            containerColor = MaterialTheme.colorScheme.surfaceVariant
+        ),
+        shape = RoundedCornerShape(16.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
+        Row(
+            modifier = Modifier.padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            // Food Image
+            // Image with enhanced styling
             Box(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .height(120.dp)
-                    .clip(RoundedCornerShape(topStart = 18.dp, topEnd = 18.dp))
+                    .size(80.dp)
+                    .clip(RoundedCornerShape(12.dp))
             ) {
                 if (food.imageUrl != null) {
                     AsyncImage(
                         model = food.imageUrl,
                         contentDescription = food.name,
-                        modifier = Modifier.fillMaxSize(),
-                        contentScale = ContentScale.Crop
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.fillMaxSize()
                     )
                 } else {
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
-                            .background(MaterialTheme.colorScheme.surfaceVariant),
+                            .background(
+                                brush = Brush.linearGradient(
+                                    colors = listOf(
+                                        MaterialTheme.colorScheme.primary,
+                                        MaterialTheme.colorScheme.secondary
+                                    )
+                                )
+                            ),
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
                             text = food.name?.firstOrNull()?.toString()?.uppercase() ?: "?",
-                            style = MaterialTheme.typography.displayMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            style = MaterialTheme.typography.headlineMedium,
+                            color = MaterialTheme.colorScheme.onPrimary,
+                            fontWeight = FontWeight.Bold
                         )
                     }
                 }
-
-                // Category badge
-
             }
 
-            // Content
+            Spacer(modifier = Modifier.width(16.dp))
+
+            // Text content with enhanced styling
             Column(
-                modifier = Modifier
-                    .padding(horizontal = 12.dp, vertical = 10.dp)
-                    .fillMaxHeight(),
-                verticalArrangement = Arrangement.SpaceBetween
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
-                Column {
-                    // Food name and rating
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.Top
-                    ) {
-                        Text(
-                            text = food.name ?: "Unknown Dish",
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold,
-                            maxLines = 2,
-                            overflow = TextOverflow.Ellipsis,
-                            modifier = Modifier.weight(1f)
-                        )
+                Text(
+                    text = food.name ?: "Unknown Dish",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Text(
+                    text = food.details?.ingredients?.take(3)?.joinToString(", ") ?: "Delicious item",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Text(
+                    text = "₹${String.format(Locale.getDefault(), "%.0f", food.price ?: 0.0)}",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary,
+                    fontSize = 18.sp
+                )
+            }
 
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Icon(
-                                Icons.Default.Star,
-                                contentDescription = "Rating",
-                                tint = Color(0xFFFFD700),
-                                modifier = Modifier.size(15.dp)
-                            )
-                            Text(
-                                text = "4.5",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.padding(start = 2.dp)
-                            )
-                        }
-                    }
+            Spacer(modifier = Modifier.width(16.dp))
 
-                    // Ingredients preview
-                    food.details?.ingredients?.let { ingredients ->
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(
-                            text = ingredients.take(2).joinToString(", ") +
-                                    if (ingredients.size > 2) "..." else "",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                // Prep time and availability
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+            // Add to Order Button / Indicator
+            if (isItemInCart) {
+                Icon(
+                    imageVector = Icons.Filled.Check,
+                    contentDescription = "Item in Cart",
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(32.dp)
+                )
+            } else {
+                Button(
+                    onClick = onAddToCart,
+                    enabled = food.availability == true && !isItemInCart,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = if (isItemInCart) MaterialTheme.colorScheme.surfaceVariant else MaterialTheme.colorScheme.primary,
+                        contentColor = if (isItemInCart) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onPrimary,
+                        disabledContainerColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f),
+                        disabledContentColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+                    ),
+                    shape = RoundedCornerShape(12.dp),
+                    modifier = Modifier.size(48.dp),
+                    contentPadding = PaddingValues(0.dp)
                 ) {
-                    food.details?.prepTime?.let { prepTime ->
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Icon(
-                                painter = painterResource(R.drawable.baseline_access_time_filled_24),
-                                contentDescription = "Prep Time",
-                                modifier = Modifier.size(14.dp),
-                                tint = MaterialTheme.colorScheme.primary
-                            )
-                            Spacer(modifier = Modifier.width(2.dp))
-                            Text(
-                                text = prepTime,
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.primary
-                            )
-                        }
-                    }
-
-                    Text(
-                        text = if (food.availability == true) "Available" else "Sold Out",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = if (food.availability == true)
-                            MaterialTheme.colorScheme.primary
-                        else
-                            MaterialTheme.colorScheme.error,
-                        fontWeight = FontWeight.Medium
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(10.dp))
-
-                // Price and Add to Cart
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Column {
-                        food.price?.let { price ->
-                            Text(
-                                text = "₹${String.format(Locale.getDefault(), "%.0f", price)}",
-                                style = MaterialTheme.typography.titleLarge,
-                                color = MaterialTheme.colorScheme.primary,
-                                fontWeight = FontWeight.Bold
-                            )
-                        }
-                        Text(
-                            text = "per serving",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                    if (isItemInCart) {
+                        Icon(
+                            Icons.Default.Check, // Placeholder, ideally a tick or similar
+                            contentDescription = "Added to Order",
+                            modifier = Modifier.size(24.dp)
                         )
-                    }
-
-                    Button(
-                        onClick = { onAddToCart(food) },
-                        enabled = (food.availability == true && !checkFoodInCart),
-                        modifier = Modifier
-                            .height(36.dp)
-                            .defaultMinSize(minWidth = 0.dp)
-                    ) {
-                        if (checkFoodInCart) {
-                            Icon(
-                                Icons.Default.Check,
-                                contentDescription = null,
-                                modifier = Modifier.size(16.dp)
-                            )
-                            Spacer(modifier = Modifier.width(2.dp))
-                            Text("Added", style = MaterialTheme.typography.labelSmall)
-                        } else {
-                            Icon(
-                                Icons.Default.Add,
-                                contentDescription = null,
-                                modifier = Modifier.size(16.dp)
-                            )
-                            Spacer(modifier = Modifier.width(2.dp))
-                            Text("Add", style = MaterialTheme.typography.labelSmall)
-                        }
+                    } else {
+                        Icon(Icons.Default.Add, contentDescription = "Add to Order", modifier = Modifier.size(24.dp))
                     }
                 }
             }
         }
     }
 }
-
-@Preview(name = "TableFoodCard" , showBackground = true)
-@Composable
-private fun PreviewCustomerFoodCard() {
-    K2TTheme {
-        LazyRow {
-            item{
-                TableFoodCard(
-                    food = Food(
-                        foodId = "1",
-                        name = "Butter Chicken",
-                        details = Details(
-                            prepTime = "25 mins",
-                            ingredients = listOf("Chicken", "Butter", "Tomato", "Cream", "Spices")
-                        ),
-                        price = 299.0,
-                        availability = true,
-                        imageUrl = null,
-                        createdAt = Date()
-                    )
-                )
-            }
-            item{
-                TableFoodCard(
-                    food = Food(
-                        foodId = "1",
-                        name = "Butter Chicken",
-                        details = Details(
-                            prepTime = "25 mins",
-                            ingredients = listOf("Chicken", "Butter", "Tomato", "Cream", "Spices")
-
-                        ),
-                        price = 299.0,
-                        availability = true,
-                        imageUrl = null,
-                        createdAt = Date()
-                    )
-                )
-            }
-            item{
-                TableFoodCard(
-                    food = Food(
-                        foodId = "1",
-                        name = "Butter Chicken",
-                        details = Details(
-                            prepTime = "25 mins",
-                            ingredients = listOf("Chicken", "Butter", "Tomato", "Cream", "Spices")
-                        ),
-                        price = 299.0,
-                        availability = true,
-                        imageUrl = null,
-                        createdAt = Date()
-                    )
-                )
-            }
-        }
-    }
-}
-
-
-
-
-
-
-
-
-
-class Chrome {
-
-    fun open() {
-        println("Chrome opened")
-        showAd()
-    }
-
-    private fun showAd() {
-        if (userIsUsingChrome()) {
-            println("User already on Chrome? Show Chrome ad anyway 🔁")
-            val updatedChrome = Chrome()
-            updatedChrome.downloadAndUpdateChrome()
-        }
-    }
-    fun userIsUsingChrome() : Boolean = true
-    fun downloadAndUpdateChrome() {
-        println("Downloading Chrome… using Chrome… to update Chrome 💽")
-        val newChrome = Chrome()
-        newChrome.open() // recursion begins
-    }
-}
-
-fun main() {
-    val chrome = Chrome()
-    chrome.open()
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-

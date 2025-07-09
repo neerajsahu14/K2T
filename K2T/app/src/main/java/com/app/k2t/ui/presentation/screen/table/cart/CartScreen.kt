@@ -1,33 +1,26 @@
 package com.app.k2t.ui.presentation.screen.table.cart
 
 import android.widget.Toast
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.animation.*
+import androidx.compose.animation.core.*
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ShoppingCart
-import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -41,10 +34,11 @@ import java.util.Locale
 @Composable
 fun CartScreen(
     modifier: Modifier = Modifier,
+    contentPadding: PaddingValues = PaddingValues(),
     cartViewModel: CartViewModel = viewModel(),
     orderViewModel: OrderViewModel = viewModel(),
-    userViewModel: UserViewModel = viewModel() // Assuming you might need user details like tableId
-    // orderItemViewModel: OrderItemViewModel = viewModel() // Not directly used in UI logic here
+    userViewModel: UserViewModel = viewModel(),
+    onBrowseMenuClick: () -> Unit = {}
 ) {
     val cartItemsState = cartViewModel.allFoodInCart.collectAsState()
     val cartItems = cartItemsState.value
@@ -54,7 +48,6 @@ fun CartScreen(
     val context = LocalContext.current
 
     // User details - assuming tableId and tableNumber might come from user session
-    // For this example, let's assume they are available or can be hardcoded/fetched
     val currentUser by userViewModel.userState.collectAsState()
     val tableId = currentUser?.tableId // Correctly get tableId from user state
     val tableNumber = currentUser?.tableNumber ?: "T1" // Replace with actual logic
@@ -64,9 +57,7 @@ fun CartScreen(
         when (val status = orderPlacementStatus) {
             is OrderViewModel.OrderPlacementStatus.OrderPlaced -> {
                 Toast.makeText(context, "Order placed successfully! ID: ${status.orderId}", Toast.LENGTH_LONG).show()
-                // Optionally navigate to an order confirmation screen or back
-                // navController.navigate("orderConfirmation/${statusCode.orderId}")
-                orderViewModel.resetOrderPlacementStatus() // Reset statusCode after handling
+                orderViewModel.resetOrderPlacementStatus()
             }
             is OrderViewModel.OrderPlacementStatus.Error -> {
                 Toast.makeText(context, "Error: ${status.message}", Toast.LENGTH_LONG).show()
@@ -84,105 +75,154 @@ fun CartScreen(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .padding(16.dp),
-        verticalArrangement = Arrangement.SpaceBetween
+            .background(MaterialTheme.colorScheme.background)
     ) {
         if (cartItems.isEmpty()) {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(contentPadding)
+                    .padding(16.dp),
+                contentAlignment = Alignment.Center
+            ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Icon(
                         imageVector = Icons.Filled.ShoppingCart,
                         contentDescription = "Empty Cart",
-                        modifier = Modifier.size(64.dp)
+                        modifier = Modifier.size(80.dp),
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text(
+                        text = "Your cart is empty",
+                        style = MaterialTheme.typography.headlineSmall,
+                        textAlign = TextAlign.Center,
+                        color = MaterialTheme.colorScheme.onBackground
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        text = "Your cart is empty",
-                        style = MaterialTheme.typography.titleMedium,
+                        text = "Add items from the menu to get started.",
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         textAlign = TextAlign.Center
                     )
+                    Spacer(modifier = Modifier.height(24.dp))
+                    Button(
+                        onClick = onBrowseMenuClick,
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.primary
+                        )
+                    ) {
+                        Text("Browse Menu")
+                    }
                 }
             }
         } else {
             LazyColumn(
-                modifier = Modifier.weight(1f),
-                contentPadding = PaddingValues(vertical = 8.dp)
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth(),
+                contentPadding = PaddingValues(
+                    start = 16.dp,
+                    end = 16.dp,
+                    top = contentPadding.calculateTopPadding() + 8.dp,
+                    bottom = contentPadding.calculateBottomPadding() + 8.dp
+                ),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 items(cartItems.size) { index ->
                     val item = cartItems[index]
-                    CartItemCard(
-                        cartFood = item,
-                        onIncrease = {
-                            val newQty = (item.quantity ?: 1) + 1
-                            cartViewModel.updateFood(item.copy(
-                                quantity = newQty,
-                                totalPrice = (item.unitPrice ?: 0.0) * newQty
-                            ))
-                        },
-                        onDecrease = {
-                            val newQty = (item.quantity ?: 1) - 1
-                            if (newQty > 0) {
-                                cartViewModel.updateFood(item.copy(
-                                    quantity = newQty,
-                                    totalPrice = (item.unitPrice ?: 0.0) * newQty
-                                ))
-                            } else {
-                                // Optionally delete if quantity becomes 0, or disable decrease button
+                    Box(modifier = Modifier.widthIn(max = 840.dp)) {
+                        CartFoodCard(
+                            cartFood = item,
+                            onIncrease = {
+                                val newQty = (item.quantity ?: 1) + 1
+                                cartViewModel.updateFood(item.copy(quantity = newQty))
+                            },
+                            onDecrease = {
+                                val newQty = (item.quantity ?: 1) - 1
+                                if (newQty > 0) {
+                                    cartViewModel.updateFood(item.copy(quantity = newQty))
+                                }
+                            },
+                            onDelete = {
                                 cartViewModel.deleteFood(item)
                             }
-                        },
-                        onDelete = {
-                            cartViewModel.deleteFood(item)
-                        }
-                    )
-                }
-            }
-            Spacer(modifier = Modifier.height(16.dp))
-            Column {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = "Total: ₹${String.format(Locale.getDefault(), "%.2f", total)}",
-                        style = MaterialTheme.typography.headlineSmall,
-                        fontWeight = FontWeight.Bold
-                    )
-                    OutlinedButton(
-                        onClick = { cartViewModel.clearCart() },
-                        enabled = orderPlacementStatus != OrderViewModel.OrderPlacementStatus.Processing
-                    ) {
-                        Text("Clear Cart")
+                        )
                     }
                 }
-                Spacer(modifier = Modifier.height(16.dp))
-                Button(
-                    onClick = {
-                        orderViewModel.placeOrder(
-                            tableId = tableId.toString(), // Pass actual tableId
-                            tableNumber = tableNumber // Pass actual tableNumber
-                        )
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                    enabled = cartItems.isNotEmpty() && orderPlacementStatus != OrderViewModel.OrderPlacementStatus.Processing
+            }
+
+            // Bottom Bar
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(MaterialTheme.colorScheme.surfaceContainer.copy(alpha = 0.9f))
+                    .padding(bottom = contentPadding.calculateBottomPadding()),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(
+                    modifier = Modifier
+                        .widthIn(max = 840.dp)
+                        .padding(16.dp)
                 ) {
-                    if (orderPlacementStatus == OrderViewModel.OrderPlacementStatus.Processing ||
-                        orderPlacementStatus == OrderViewModel.OrderPlacementStatus.PaymentSuccess) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(24.dp),
-                            color = MaterialTheme.colorScheme.onPrimary
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "Total: ₹${String.format(Locale.getDefault(), "%.2f", total)}",
+                            style = MaterialTheme.typography.headlineSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface
                         )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text("Processing...")
-                    } else {
-                        Text("Place Order")
+                        OutlinedButton(
+                            onClick = { cartViewModel.clearCart() },
+                            enabled = orderPlacementStatus != OrderViewModel.OrderPlacementStatus.Processing,
+                            colors = ButtonDefaults.outlinedButtonColors(
+                                contentColor = MaterialTheme.colorScheme.primary
+                            ),
+                            border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary)
+                        ) {
+                            Text("Clear Cart")
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Button(
+                        onClick = {
+                            orderViewModel.placeOrder(
+                                tableId = tableId.toString(), // Pass actual tableId
+                                tableNumber = tableNumber // Pass actual tableNumber
+                            )
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(56.dp),
+                        enabled = cartItems.isNotEmpty() && orderPlacementStatus != OrderViewModel.OrderPlacementStatus.Processing,
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.primary
+                        ),
+                        shape = RoundedCornerShape(16.dp)
+                    ) {
+                        if (orderPlacementStatus == OrderViewModel.OrderPlacementStatus.Processing ||
+                            orderPlacementStatus == OrderViewModel.OrderPlacementStatus.PaymentSuccess
+                        ) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(24.dp),
+                                color = MaterialTheme.colorScheme.onPrimary
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text("Processing...")
+                        } else {
+                            Icon(Icons.Default.ShoppingCart, contentDescription = null)
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text("Place Order")
+                        }
                     }
                 }
             }
         }
     }
 }
-
-

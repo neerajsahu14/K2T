@@ -1,5 +1,6 @@
 package com.app.k2t.ui.presentation.screen.table.home
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -14,6 +15,8 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
@@ -51,83 +54,100 @@ fun TableFoodDetailsScreen(
     val foodInCart = allFoodInCart.find { it.foodId == food.foodId }
 
     Scaffold(
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             TopAppBar(
-                title = { Text("Food Details") },
+                title = { }, // Title is handled in content for better alignment
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = MaterialTheme.colorScheme.onSurface)
                     }
                 },
                 actions = {
                     IconButton(onClick = { /* Share functionality */ }) {
-                        Icon(Icons.Default.Share, contentDescription = "Share")
+                        Icon(Icons.Default.Share, contentDescription = "Share", tint = MaterialTheme.colorScheme.onSurface)
                     }
-                }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color.Transparent, // Make TopAppBar transparent
+                    scrolledContainerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.8f)
+                )
             )
         },
         bottomBar = {
             // Add to Cart Bottom Bar
-            Surface(
-                modifier = Modifier.fillMaxWidth(),
-                shadowElevation = 8.dp
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(MaterialTheme.colorScheme.surfaceContainer.copy(alpha = 0.9f)),
+                contentAlignment = Alignment.Center
             ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                Surface(
+                    modifier = Modifier.widthIn(max = 840.dp),
+                    shadowElevation = 8.dp,
+                    tonalElevation = 3.dp,
+                    color = Color.Transparent
                 ) {
-                    Column {
-                        Text(
-                            text = "Total: ₹${String.format(Locale.getDefault(),"%.0f", (food.price ?: 0.0) * quantity)}",
-                            style = MaterialTheme.typography.headlineSmall,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                        Text(
-                            text = "$quantity × ₹${String.format(Locale.getDefault(),"%.0f", food.price ?: 0.0)}",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-
-                    Button(
-                        onClick = {
-                            if (isFoodInCart && foodInCart != null) {
-                                val updatedFoodInCart = foodInCart.copy(quantity = foodInCart.quantity?.plus(
-                                    quantity
-                                ))
-                                cartViewModel.updateFood(updatedFoodInCart)
-                            } else {
-                                val newFoodInCart = FoodInCart(
-                                    foodId = food.foodId ?: "",
-                                    quantity = quantity,
-                                    foodName = food.name.toString(),
-                                    unitPrice = food.price,
-                                    totalPrice = food.price?.times(quantity),
-                                    imageUrl = food.imageUrl
-                                )
-                                cartViewModel.insertFood(newFoodInCart)
-                            }
-                                  },
-                        enabled = food.availability == true,
-                        modifier = Modifier.height(50.dp)
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 12.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Icon(Icons.Default.ShoppingCart, contentDescription = null)
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(if (isFoodInCart) "Add More" else "Add to Cart")
+                        Column {
+                            Text(
+                                text = "Total: ₹${String.format(Locale.getDefault(),"%.0f", (food.price ?: 0.0) * quantity)}",
+                                style = MaterialTheme.typography.headlineSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                            Text(
+                                text = "$quantity × ₹${String.format(Locale.getDefault(),"%.0f", food.price ?: 0.0)}",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+
+                        Button(
+                            onClick = {
+                                if (isFoodInCart && foodInCart != null) {
+                                    val newQuantity = (foodInCart.quantity ?: 0) + quantity
+                                    val updatedFoodInCart = foodInCart.copy(quantity = newQuantity)
+                                    cartViewModel.updateFood(updatedFoodInCart)
+                                } else {
+                                    val newFoodInCart = FoodInCart(
+                                        foodId = food.foodId ?: "",
+                                        quantity = quantity,
+                                        foodName = food.name.toString(),
+                                        unitPrice = food.price,
+                                        totalPrice = food.price?.times(quantity),
+                                        imageUrl = food.imageUrl
+                                    )
+                                    cartViewModel.insertFood(newFoodInCart)
+                                }
+                            },
+                            enabled = food.availability == true,
+                            modifier = Modifier.height(50.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.primary
+                            ),
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Icon(Icons.Default.ShoppingCart, contentDescription = null)
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(if (isFoodInCart) "Add More" else "Add to Cart")
+                        }
                     }
                 }
             }
         }
     ) { paddingValues ->
         Column(
-            modifier = Modifier // Use only Modifier here to avoid stacking paddings
+            modifier = Modifier
                 .fillMaxSize()
+                .padding(bottom = paddingValues.calculateBottomPadding()) // Only apply bottom padding for the bottom bar
                 .verticalScroll(scrollState)
-                .padding(paddingValues)
         ) {
             // Food Image/Video Section
             Box(
@@ -145,7 +165,16 @@ fun TableFoodDetailsScreen(
                 } else {
                     // Placeholder
                     Box(
-                        modifier = Modifier.fillMaxSize(),
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(
+                                brush = Brush.linearGradient(
+                                    colors = listOf(
+                                        MaterialTheme.colorScheme.primary,
+                                        MaterialTheme.colorScheme.secondary
+                                    )
+                                )
+                            ),
                         contentAlignment = Alignment.Center
                     ) {
                         Column(
@@ -155,12 +184,12 @@ fun TableFoodDetailsScreen(
                                 painter = painterResource(R.drawable.baseline_fastfood_24),
                                 contentDescription = null,
                                 modifier = Modifier.size(80.dp),
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                tint = MaterialTheme.colorScheme.onPrimary
                             )
                             Text(
                                 text = food.name ?: "Food Item",
                                 style = MaterialTheme.typography.headlineLarge,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                color = MaterialTheme.colorScheme.onPrimary,
                                 textAlign = TextAlign.Center
                             )
                         }
@@ -180,7 +209,7 @@ fun TableFoodDetailsScreen(
                             Icon(
                                 Icons.Default.PlayArrow,
                                 contentDescription = "Play Video",
-                                tint = Color.White
+                                tint = MaterialTheme.colorScheme.onPrimary
                             )
                         }
                     }
@@ -192,9 +221,9 @@ fun TableFoodDetailsScreen(
                         .align(Alignment.TopEnd)
                         .padding(16.dp),
                     color = if (food.availability == true)
-                        MaterialTheme.colorScheme.primaryContainer
+                        MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.8f)
                     else
-                        MaterialTheme.colorScheme.errorContainer,
+                        MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.8f),
                     shape = RoundedCornerShape(20.dp)
                 ) {
                     Text(
@@ -224,7 +253,8 @@ fun TableFoodDetailsScreen(
                         Text(
                             text = food.name ?: "Unknown Dish",
                             style = MaterialTheme.typography.headlineLarge,
-                            fontWeight = FontWeight.Bold
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface
                         )
 
 
@@ -243,7 +273,7 @@ fun TableFoodDetailsScreen(
                             Icon(
                                 Icons.Default.Star,
                                 contentDescription = "Rating",
-                                tint = Color(0xFFFFD700),
+                                tint = MaterialTheme.colorScheme.secondary,
                                 modifier = Modifier.size(20.dp)
                             )
                             Text(
@@ -264,9 +294,9 @@ fun TableFoodDetailsScreen(
                     food.details?.prepTime?.let { prepTime ->
                         item {
                             InfoCard(
-                                icon=  R.drawable.baseline_access_time_filled_24,
-                                title = "Prep Time",
-                                value = prepTime
+                                    icon=  R.drawable.baseline_access_time_filled_24,
+                                    title = "Prep Time",
+                                    value = prepTime
                             )
                         }
                     }
@@ -288,7 +318,8 @@ fun TableFoodDetailsScreen(
                     Text(
                         text = "Ingredients",
                         style = MaterialTheme.typography.headlineSmall,
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface
                     )
 
                     Spacer(modifier = Modifier.height(12.dp))
@@ -307,7 +338,8 @@ fun TableFoodDetailsScreen(
                                 Text(
                                     text = ingredients[index],
                                     modifier = Modifier.padding(12.dp),
-                                    style = MaterialTheme.typography.bodyMedium
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
                         }
@@ -320,7 +352,8 @@ fun TableFoodDetailsScreen(
                 Text(
                     text = "Quantity",
                     style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface
                 )
 
                 Spacer(modifier = Modifier.height(12.dp))
@@ -333,20 +366,21 @@ fun TableFoodDetailsScreen(
                         onClick = { if (quantity > 1) quantity-- },
                         enabled = quantity > 1
                     ) {
-                        Icon(painter = painterResource(R.drawable.baseline_remove_24), contentDescription = "Decrease")
+                        Icon(painter = painterResource(R.drawable.baseline_remove_24), contentDescription = "Decrease", tint = MaterialTheme.colorScheme.onSurface)
                     }
 
                     Text(
                         text = quantity.toString(),
                         style = MaterialTheme.typography.headlineMedium,
                         fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(horizontal = 16.dp)
+                        modifier = Modifier.padding(horizontal = 16.dp),
+                        color = MaterialTheme.colorScheme.onSurface
                     )
 
                     IconButton(
                         onClick = { quantity++ }
                     ) {
-                        Icon(Icons.Default.Add, contentDescription = "Increase")
+                        Icon(Icons.Default.Add, contentDescription = "Increase", tint = MaterialTheme.colorScheme.onSurface)
                     }
                 }
 
@@ -399,7 +433,8 @@ private fun InfoCard(
                 text = value,
                 style = MaterialTheme.typography.bodyMedium,
                 fontWeight = FontWeight.Medium,
-                textAlign = TextAlign.Center
+                textAlign = TextAlign.Center,
+                color = MaterialTheme.colorScheme.onSurface
             )
         }
     }
@@ -415,7 +450,14 @@ private fun PreviewCustomerFoodDetailsScreen() {
                 name = "Butter Chicken",
                 details = Details(
                     prepTime = "25 mins",
-                    ingredients = listOf("Chicken", "Butter", "Tomato", "Cream", "Spices", "Onions")
+                    ingredients = listOf(
+                        "Chicken",
+                        "Butter",
+                        "Tomato",
+                        "Cream",
+                        "Spices",
+                        "Onions"
+                    )
                 ),
                 price = 299.0,
                 availability = true,

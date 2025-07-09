@@ -1,5 +1,5 @@
 [versions]
-agp = "8.10.1"
+agp = "8.11.0"
 coilCompose = "2.3.0"
 coreSplashscreen = "1.0.1"
 firebaseAppcheckDebug = "18.0.0"

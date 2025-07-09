@@ -7,6 +7,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ListItem
+import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -18,6 +20,7 @@ import androidx.compose.ui.unit.dp
 import com.app.k2t.firebase.model.OrderItem
 import com.app.k2t.firebase.utils.OrderStatus
 import java.util.Date
+import androidx.compose.material3.MaterialTheme
 
 @Composable
 fun OrderedFoodCard(
@@ -25,34 +28,27 @@ fun OrderedFoodCard(
     item: OrderItem
 ) {
     val statusColor = when (item.statusCode) {
-        OrderStatus.PENDING.code -> Color.Gray
-        OrderStatus.PREPARING.code -> Color(0xFFFFA500) // Orange
-        OrderStatus.COMPLETED.code -> Color.Green
-        else -> Color.Black
+        OrderStatus.PENDING.code -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+        OrderStatus.PREPARING.code -> MaterialTheme.colorScheme.secondary
+        OrderStatus.COMPLETED.code -> MaterialTheme.colorScheme.primary
+        else -> MaterialTheme.colorScheme.onSurface
     }
 
-    Card(
-        modifier = modifier.fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(2.dp)
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 8.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(text = item.foodName ?: "Unknown Item", fontWeight = FontWeight.Bold)
-                Text(text = "Quantity: ${item.quantity}")
-            }
+    ListItem(
+        headlineContent = { Text(text = item.foodName ?: "Unknown Item", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface) },
+        supportingContent = { Text(text = "Quantity: ${item.quantity}", color = MaterialTheme.colorScheme.onSurfaceVariant) },
+        trailingContent = {
             Text(
                 text = OrderStatus.fromCode(item.statusCode ?: 0).displayName,
                 color = statusColor,
                 fontWeight = FontWeight.SemiBold
             )
-        }
-    }
+        },
+        colors = ListItemDefaults.colors(
+            containerColor = Color.Transparent
+        ),
+        modifier = modifier
+    )
 }
 
 @Preview(name = "OrderedFoodCard")
