@@ -26,14 +26,18 @@ import coil.compose.AsyncImage
 import com.app.k2t.R
 import com.app.k2t.firebase.model.Details
 import com.app.k2t.firebase.model.Food
+import com.app.k2t.local.model.FoodInCart
 import com.app.k2t.ui.theme.K2TTheme
+import com.app.k2t.ui.presentation.viewmodel.CartViewModel
 import java.text.SimpleDateFormat
 import java.util.*
+import org.koin.androidx.compose.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TableFoodDetailsScreen(
     food: Food,
+    cartViewModel: CartViewModel = koinViewModel(),
     modifier: Modifier = Modifier,
     onBackClick: () -> Unit = {},
     onAddToCart: (Int) -> Unit = {},
@@ -41,6 +45,10 @@ fun TableFoodDetailsScreen(
 ) {
     var quantity by remember { mutableIntStateOf(1) }
     val scrollState = rememberScrollState()
+    val isFoodInCart by cartViewModel.isFoodInCart(food.foodId ?: "").collectAsState(initial = false)
+    val allFoodInCart by cartViewModel.allFoodInCart.collectAsState()
+
+    val foodInCart = allFoodInCart.find { it.foodId == food.foodId }
 
     Scaffold(
         topBar = {
@@ -86,13 +94,30 @@ fun TableFoodDetailsScreen(
                     }
 
                     Button(
-                        onClick = { onAddToCart(quantity) },
+                        onClick = {
+                            if (isFoodInCart && foodInCart != null) {
+                                val updatedFoodInCart = foodInCart.copy(quantity = foodInCart.quantity?.plus(
+                                    quantity
+                                ))
+                                cartViewModel.updateFood(updatedFoodInCart)
+                            } else {
+                                val newFoodInCart = FoodInCart(
+                                    foodId = food.foodId ?: "",
+                                    quantity = quantity,
+                                    foodName = food.name.toString(),
+                                    unitPrice = food.price,
+                                    totalPrice = food.price?.times(quantity),
+                                    imageUrl = food.imageUrl
+                                )
+                                cartViewModel.insertFood(newFoodInCart)
+                            }
+                                  },
                         enabled = food.availability == true,
                         modifier = Modifier.height(50.dp)
                     ) {
                         Icon(Icons.Default.ShoppingCart, contentDescription = null)
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text("Add to Cart")
+                        Text(if (isFoodInCart) "Add More" else "Add to Cart")
                     }
                 }
             }
@@ -115,7 +140,7 @@ fun TableFoodDetailsScreen(
                         model = food.imageUrl,
                         contentDescription = food.name,
                         modifier = Modifier.fillMaxSize(),
-                        contentScale = androidx.compose.ui.layout.ContentScale.Crop
+                        contentScale = ContentScale.Crop
                     )
                 } else {
                     // Placeholder
