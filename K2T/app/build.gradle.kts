@@ -79,6 +79,11 @@ dependencies {
     implementation(libs.firebase.ai)
     implementation(libs.firebase.messaging)
     implementation(libs.firebase.storage)
+    implementation(libs.firebase.vertexai)
+    implementation(libs.firebase.appcheck.playintegrity)
+    debugImplementation(libs.firebase.appcheck.debug) // Or latest
+
+
     annotationProcessor(libs.room.compiler)
     ksp(libs.room.compiler)
     implementation(libs.androidx.room.ktx)
