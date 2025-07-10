@@ -40,7 +40,10 @@ class CartViewModel : ViewModel(), KoinComponent {
     }
     fun updateFood(foodInCart: FoodInCart) {
         viewModelScope.launch {
-            cartRepository.updateFood(foodInCart)
+            val updatedFood = foodInCart.copy(
+                totalPrice = (foodInCart.unitPrice ?: 0.0) * (foodInCart.quantity ?: 1)
+            )
+            cartRepository.updateFood(updatedFood)
         }
     }
 
