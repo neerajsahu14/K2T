@@ -208,7 +208,8 @@ fun CartFoodCard(
                                 letterSpacing = 0.5.sp
                             ),
                             fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.primary
+                            color = MaterialTheme.colorScheme.primary,
+                            maxLines = 1 // Ensure the total price stays on a single line
                         )
                     }
                 }
@@ -305,7 +306,6 @@ fun CartFoodCard(
                             // Quantity display with enhanced styling
                             Box(
                                 modifier = Modifier
-                                    .padding(horizontal = 12.dp)
                                     .background(
                                         MaterialTheme.colorScheme.surfaceContainerHighest,
                                         RoundedCornerShape(8.dp)

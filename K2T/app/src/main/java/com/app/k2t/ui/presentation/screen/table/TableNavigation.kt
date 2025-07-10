@@ -36,6 +36,7 @@ import com.app.k2t.ui.presentation.viewmodel.FoodViewModel
 import com.app.k2t.R
 import com.app.k2t.ui.presentation.screen.table.cart.CartScreen
 import com.app.k2t.ui.presentation.screen.table.order.OrdersScreen
+import com.app.k2t.ui.theme.K2TTheme
 
 // TableNavigation routes
 sealed class TableRoute(val route: String) {
@@ -143,6 +144,12 @@ fun ProfileScreen(
             }
         }
     }
+}
+
+@Preview
+@Composable
+fun ProfileScreenPreview() {
+    ProfileScreen(tableNumber = "Table T1")
 }
 
 // ...existing code...
@@ -388,4 +395,10 @@ fun TableNavigation(
             }
         }
     }
+}
+
+@Preview
+@Composable
+fun TableNavigationPreview() {
+    K2TTheme { TableNavigation() }
 }

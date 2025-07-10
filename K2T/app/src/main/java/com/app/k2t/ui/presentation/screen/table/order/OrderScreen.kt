@@ -57,6 +57,14 @@ fun OrdersScreen(
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
     ) {
+        Text(
+            text = "Orders for Table $tableNumber",
+            style = MaterialTheme.typography.headlineSmall,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier
+                .padding(start = 16.dp, top = 8.dp, end = 16.dp, bottom = 8.dp)
+                .align(Alignment.CenterHorizontally)
+        )
         if (activeOrders.isEmpty()) {
             Column(
                 modifier = Modifier

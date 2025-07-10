@@ -1,5 +1,6 @@
 package com.app.k2t.ui.presentation.screen.table.cart
 
+import android.R
 import android.widget.Toast
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
@@ -15,15 +16,14 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
-import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.app.k2t.ui.presentation.viewmodel.CartViewModel
@@ -77,6 +77,22 @@ fun CartScreen(
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
     ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween,
+            modifier = Modifier.fillMaxWidth()
+                .padding(horizontal = 16.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Filled.ShoppingCart,
+                contentDescription = "Cart Icon",
+                modifier = Modifier.size(32.dp) // Slightly larger icon
+            )
+            Text(
+                text = "Your Cart (${cartItems.size})",
+                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.SemiBold),
+            )
+        }
         if (cartItems.isEmpty()) {
             Box(
                 modifier = Modifier
@@ -226,3 +242,10 @@ fun CartScreen(
         }
     }
 }
+
+@Preview
+@Composable
+fun CartScreenPreview() {
+    CartScreen()
+}
+
