@@ -49,9 +49,8 @@ fun FoodScreen(
 
     Column(
         modifier = modifier
-            .fillMaxSize()
+            .fillMaxSize().padding(16.dp) // Added padding here
     ) {
-        // Top App Bar
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -89,7 +88,7 @@ fun FoodScreen(
 
         // Search and Filter Section
         Column(
-            modifier = Modifier.padding(16.dp)
+            modifier = Modifier.padding(vertical = 16.dp) // Adjusted padding
         ) {
             // Search Bar
             OutlinedTextField(
@@ -146,7 +145,7 @@ fun FoodScreen(
         Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp),
+                .padding(horizontal = 0.dp), // Adjusted padding
             colors = CardDefaults.cardColors(
                 containerColor = MaterialTheme.colorScheme.primaryContainer
             )
