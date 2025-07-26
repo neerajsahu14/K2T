@@ -185,8 +185,8 @@ class AnalyticsViewModel : ViewModel(), KoinComponent {
                     // Use orders for calculations if available
                     _revenueByTimeRange.value = analyticsService.calculateRevenueByTimeRange(orders)
                     _orderCountsByTimeRange.value = analyticsService.calculateOrderCountsByTimeRange(orders)
-                    _dailyRevenue.value = analyticsService.calculateDailyRevenue(orders)
-                    _hourlyRevenue.value = analyticsService.calculateRevenueByHourOfDay(orders)
+                    _dailyRevenue.value = analyticsService.calculateDailyRevenue(orders, orderItems)
+                    _hourlyRevenue.value = analyticsService.calculateRevenueByHourOfDay(orders, orderItems)
                 }
 
                 // Log the values to help debug

@@ -140,7 +140,7 @@ class AnalyticsService {
         )
     }
 
-    // Food performance analysis
+    // Food performance analysis - Modified to use historical food prices from order items
     fun calculateTopPerformingFoods(
         orderItems: List<OrderItem>,
         foods: List<Food>,
@@ -151,9 +151,13 @@ class AnalyticsService {
         // Process each order item
         orderItems.forEach { item ->
             val foodId = item.foodId ?: return@forEach
-            val revenue = (item.unitPrice ?: 0.0) * (item.quantity ?: 0)
             val quantity = item.quantity ?: 0
 
+            // Use the historical unit price from the order item instead of current price
+            val unitPrice = item.unitPrice ?: 0.0
+            val revenue = unitPrice * quantity
+
+            // Still get the food name from the list or from the item itself
             val foodName = item.foodName ?: foods.find { it.foodId == foodId }?.name ?: "Unknown"
 
             val existing = foodPerformanceMap[foodId]
@@ -200,8 +204,10 @@ class AnalyticsService {
         // Process each order item
         orderItems.forEach { item ->
             val foodId = item.foodId ?: return@forEach
-            val revenue = (item.unitPrice ?: 0.0) * (item.quantity ?: 0)
+            // Always use the item's stored unit price rather than looking up current price
+            val unitPrice = item.unitPrice ?: 0.0
             val quantity = item.quantity ?: 0
+            val revenue = unitPrice * quantity
 
             // Find which categories this food belongs to
             val categoriesForFood = foodToCategoriesMap[foodId] ?: emptyList()
@@ -234,12 +240,12 @@ class AnalyticsService {
     }
 
     // Daily revenue analysis for charts
-    fun calculateDailyRevenue(orders: List<Order>, days: Int = 7): List<DailyRevenue> {
+    fun calculateDailyRevenue(orders: List<Order>, orderItems: List<OrderItem>, days: Int = 7): List<DailyRevenue> {
         val result = mutableListOf<DailyRevenue>()
         val calendar = Calendar.getInstance()
 
         // If no orders available, return empty days but with structure
-        if (orders.isEmpty()) {
+        if (orders.isEmpty() && orderItems.isEmpty()) {
             // Start from [days] days ago
             calendar.add(Calendar.DAY_OF_YEAR, -(days - 1))
 
@@ -264,6 +270,10 @@ class AnalyticsService {
         calendar.set(Calendar.SECOND, 0)
         calendar.set(Calendar.MILLISECOND, 0)
 
+        // Create a map of order ID to date for filtering order items
+        val orderDates = orders.filter { it.orderId != null && it.createdAt != null }
+            .associate { it.orderId!! to it.createdAt!! }
+
         // For each day
         for (i in 0 until days) {
             val dayStart = calendar.time
@@ -272,11 +282,32 @@ class AnalyticsService {
             calendar.add(Calendar.DAY_OF_YEAR, 1)
             val dayEnd = calendar.time
 
-            // Calculate revenue for this day
-            val dailyRevenue = orders.filter { order ->
-                val orderDate = order.createdAt
-                orderDate != null && orderDate >= dayStart && orderDate < dayEnd
-            }.sumOf { it.totalPrice ?: 0.0 }
+            // Calculate revenue for this day using order items with accurate historical prices
+            val dailyRevenue = if (orderItems.isNotEmpty()) {
+                // First try with orderItems.addedAt date if available
+                val itemsWithDatesInRange = orderItems.filter { item ->
+                    val itemDate = item.addedAt
+                    itemDate != null && itemDate >= dayStart && itemDate < dayEnd
+                }
+
+                // If no items found with their own dates, try using the parent order date
+                if (itemsWithDatesInRange.isNotEmpty()) {
+                    itemsWithDatesInRange.sumOf { (it.unitPrice ?: 0.0) * (it.quantity ?: 0) }
+                } else {
+                    // Find items belonging to orders created on this day
+                    orderItems.filter { item ->
+                        val orderId = item.orderId
+                        val orderDate = orderId?.let { orderDates[it] }
+                        orderDate != null && orderDate >= dayStart && orderDate < dayEnd
+                    }.sumOf { (it.unitPrice ?: 0.0) * (it.quantity ?: 0) }
+                }
+            } else {
+                // Fallback to orders if no order items available
+                orders.filter { order ->
+                    val orderDate = order.createdAt
+                    orderDate != null && orderDate >= dayStart && orderDate < dayEnd
+                }.sumOf { it.totalPrice ?: 0.0 }
+            }
 
             // Format the date as MM/dd
             val month = dayStart.month + 1 // Month is 0-indexed
@@ -290,22 +321,44 @@ class AnalyticsService {
     }
 
     // Revenue by hour of day (for identifying peak hours)
-    fun calculateRevenueByHourOfDay(orders: List<Order>): List<HourlyRevenue> {
+    fun calculateRevenueByHourOfDay(orders: List<Order>, orderItems: List<OrderItem>): List<HourlyRevenue> {
         val hourlyRevenue = Array(24) { 0.0 }
 
-        // If no orders, return the empty hour structure
-        if (orders.isEmpty()) {
+        // If no orders and no items, return the empty hour structure
+        if (orders.isEmpty() && orderItems.isEmpty()) {
             return hourlyRevenue.mapIndexed { index, _ ->
                 HourlyRevenue(hour = index, revenue = 0.0)
             }
         }
 
-        orders.forEach { order ->
-            order.createdAt?.let { date ->
-                val calendar = Calendar.getInstance()
-                calendar.time = date
-                val hour = calendar.get(Calendar.HOUR_OF_DAY)
-                hourlyRevenue[hour] += order.totalPrice ?: 0.0
+        // Create a map of order ID to creation timestamp
+        val orderCreationTime = orders.filter { it.orderId != null && it.createdAt != null }
+            .associate { it.orderId!! to it.createdAt!! }
+
+        if (orderItems.isNotEmpty()) {
+            // Prefer using order items with their accurate historical prices
+            orderItems.forEach { item ->
+                // First try using the item's own timestamp
+                val itemDate = item.addedAt
+                // If item has no timestamp, try using parent order timestamp
+                val date = itemDate ?: item.orderId?.let { orderCreationTime[it] }
+
+                date?.let {
+                    val calendar = Calendar.getInstance()
+                    calendar.time = date
+                    val hour = calendar.get(Calendar.HOUR_OF_DAY)
+                    hourlyRevenue[hour] += (item.unitPrice ?: 0.0) * (item.quantity ?: 0)
+                }
+            }
+        } else {
+            // Fallback to orders if no order items available
+            orders.forEach { order ->
+                order.createdAt?.let { date ->
+                    val calendar = Calendar.getInstance()
+                    calendar.time = date
+                    val hour = calendar.get(Calendar.HOUR_OF_DAY)
+                    hourlyRevenue[hour] += order.totalPrice ?: 0.0
+                }
             }
         }
 

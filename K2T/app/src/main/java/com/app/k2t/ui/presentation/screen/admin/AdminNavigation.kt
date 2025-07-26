@@ -1,15 +1,27 @@
 package com.app.k2t.ui.presentation.screen.admin
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.painterResource
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -20,13 +32,13 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.app.k2t.R
+import com.app.k2t.ui.presentation.screen.admin.analytics.AnalyticsScreen
+import com.app.k2t.ui.presentation.screen.admin.food.AddEditFoodScreen
+import com.app.k2t.ui.presentation.screen.admin.food.FoodScreen
 import com.app.k2t.ui.presentation.screen.admin.foodcategory.AllCatagoryScreen
 import com.app.k2t.ui.presentation.screen.admin.foodcategory.CategoryDetailsScreen
 import com.app.k2t.ui.presentation.screen.admin.foodcategory.CreateAndUpdateCategory
-import com.app.k2t.ui.presentation.screen.admin.food.AddEditFoodScreen
-import com.app.k2t.ui.presentation.screen.admin.food.FoodScreen
 import com.app.k2t.ui.presentation.screen.admin.foodcategory.ManageCategoryFoodsScreen
-import com.app.k2t.ui.presentation.screen.admin.analytics.AnalyticsScreen
 
 sealed class BottomNavItem(val route: String, val label: String, val icon: Int) {
     object Food : BottomNavItem("FoodScreen", "Foods", R.drawable.food_bank)
@@ -49,29 +61,71 @@ fun AdminNavigation(modifier: Modifier = Modifier) {
 
     Scaffold(
         bottomBar = {
-            if (showBottomNav) {
-                NavigationBar {
+            AnimatedVisibility(
+                visible = showBottomNav,
+                enter = fadeIn(animationSpec = tween(300)) + slideInVertically(
+                    animationSpec = tween(300),
+                    initialOffsetY = { it }
+                ),
+                exit = fadeOut(animationSpec = tween(300)) + slideOutVertically(
+                    animationSpec = tween(300),
+                    targetOffsetY = { it }
+                )
+            ) {
+                NavigationBar(
+                    modifier = Modifier.fillMaxWidth()
+                ) {
                     val currentDestination by navController.currentBackStackEntryAsState()
                     bottomNavItems.forEach { item ->
+                        val selected = currentDestination?.destination?.hierarchy?.any {
+                            it.route == item.route
+                        } == true
+
+                        val scale by animateFloatAsState(
+                            targetValue = if (selected) 1.15f else 1.0f,
+                            animationSpec = tween(
+                                durationMillis = 300,
+                                easing = FastOutSlowInEasing
+                            ),
+                            label = "scale"
+                        )
+
                         NavigationBarItem(
-                            selected = currentDestination?.destination?.hierarchy?.any { it.route == item.route } == true,
+                            selected = selected,
                             onClick = {
                                 navController.navigate(item.route) {
-                                    // Pop up to the start destination of the graph to
-                                    // avoid building up a large stack of destinations
-                                    // on the back stack as users select items
                                     popUpTo(navController.graph.findStartDestination().id) {
                                         saveState = true
                                     }
-                                    // Avoid multiple copies of the same destination when
-                                    // reselecting the same item
                                     launchSingleTop = true
-                                    // Restore state when reselecting a previously selected item
                                     restoreState = true
                                 }
                             },
-                            icon = { Icon(painter = painterResource(id = item.icon), contentDescription = item.label) },
-                            label = { Text(item.label) }
+                            icon = {
+                                Icon(
+                                    painter = painterResource(id = item.icon),
+                                    contentDescription = item.label,
+                                    modifier = Modifier
+                                        .graphicsLayer {
+                                            scaleX = if (selected) scale else 1f
+                                            scaleY = if (selected) scale else 1f
+                                        }
+                                )
+                            },
+                            label = {
+                                Text(
+                                    text = item.label,
+                                    style = MaterialTheme.typography.labelSmall,
+                                    modifier = Modifier.graphicsLayer {
+                                        alpha = if (selected) 1f else 0.7f
+                                    }
+                                )
+                            },
+                            colors = NavigationBarItemDefaults.colors(
+                                selectedIconColor = MaterialTheme.colorScheme.primary,
+                                selectedTextColor = MaterialTheme.colorScheme.primary,
+                                indicatorColor = MaterialTheme.colorScheme.primaryContainer
+                            )
                         )
                     }
                 }

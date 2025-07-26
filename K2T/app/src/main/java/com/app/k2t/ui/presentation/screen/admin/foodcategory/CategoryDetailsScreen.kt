@@ -57,6 +57,9 @@ fun CategoryDetailsScreen(
     var showRemoveConfirmation by remember { mutableStateOf(false) }
     var foodToRemove by remember { mutableStateOf<Food?>(null) }
 
+    // Add dialog for visibility confirmation
+    var showVisibilityConfirmation by remember { mutableStateOf(false) }
+
     if (showRemoveConfirmation && foodToRemove != null) {
         AlertDialog(
             onDismissRequest = { showRemoveConfirmation = false },
@@ -75,6 +78,37 @@ fun CategoryDetailsScreen(
             },
             dismissButton = {
                 TextButton(onClick = { showRemoveConfirmation = false }) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
+
+    // Visibility confirmation dialog
+    if (showVisibilityConfirmation && category != null) {
+        AlertDialog(
+            onDismissRequest = { showVisibilityConfirmation = false },
+            title = { Text("Change Visibility") },
+            text = {
+                Text(
+                    if (category!!.visible)
+                        "Are you sure you want to hide this category? It will not be visible to users."
+                    else
+                        "Are you sure you want to make this category visible to users?"
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        categoryViewModel.toggleCategoryVisibility(categoryId)
+                        showVisibilityConfirmation = false
+                    }
+                ) {
+                    Text("Confirm")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showVisibilityConfirmation = false }) {
                     Text("Cancel")
                 }
             }
@@ -102,6 +136,22 @@ fun CategoryDetailsScreen(
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
+
+            // Visibility toggle button
+            category?.let {
+                IconButton(
+                    onClick = { showVisibilityConfirmation = true }
+                ) {
+                    Icon(
+                        painter = painterResource(
+                            id = if (it.visible) R.drawable.visibility else R.drawable.visibility_off
+                        ),
+                        contentDescription = if (it.visible) "Hide Category" else "Show Category",
+                        tint = if (it.visible) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error
+                    )
+                }
+            }
+
             IconButton(onClick = { onEditCategoryClick(categoryId) }) {
                 Icon(Icons.Default.Edit, contentDescription = "Edit Category")
             }

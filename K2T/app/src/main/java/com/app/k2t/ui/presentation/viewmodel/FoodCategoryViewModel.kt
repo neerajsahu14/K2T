@@ -1,5 +1,6 @@
 package com.app.k2t.ui.presentation.viewmodel
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.app.k2t.firebase.model.FoodCategory
@@ -10,9 +11,9 @@ import kotlinx.coroutines.launch
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 
-class FoodCategoryViewModel : ViewModel() , KoinComponent{
+class FoodCategoryViewModel : ViewModel() , KoinComponent {
 
-    private val repository : FoodCategoryRepositoryImpl by inject()
+    private val repository: FoodCategoryRepositoryImpl by inject()
 
     private val _categories = MutableStateFlow<List<FoodCategory>>(emptyList())
     val categories: StateFlow<List<FoodCategory>> = _categories
@@ -99,4 +100,21 @@ class FoodCategoryViewModel : ViewModel() , KoinComponent{
             }
         }
     }
+
+    fun toggleCategoryVisibility(categoryId: String) {
+        viewModelScope.launch {
+            _loading.value = true
+            _error.value = null
+            val category = _categories.value.find { it.id == categoryId }
+            if (category != null) {
+                // Toggle the visibility status
+                val updatedCategory = category.copy(visible = !category.visible)
+                updateCategory(updatedCategory)
+            } else {
+                _error.value = "Category not found."
+            }
+            _loading.value = false
+        }
+    }
+
 }

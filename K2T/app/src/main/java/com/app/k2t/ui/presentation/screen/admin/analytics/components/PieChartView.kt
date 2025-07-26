@@ -4,8 +4,11 @@ import android.content.Context
 import android.graphics.*
 import android.util.AttributeSet
 import android.view.View
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.viewinterop.AndroidView
 import com.app.k2t.analytics.CategoryPerformance
 import com.app.k2t.analytics.FoodPerformance
@@ -33,7 +36,7 @@ class PieChartView @JvmOverloads constructor(
         }
 
     // Chart styling
-    var textColor: Int = Color.BLACK
+    var textColor: Int = android.graphics.Color.BLACK
     var labelTextSize: Float = 36f
     var valueTextSize: Float = 32f
     private var totalValue: Float = 0f
@@ -89,23 +92,27 @@ class PieChartView @JvmOverloads constructor(
             0f
         }
 
-        val chartSize = min(
-            width - legendWidth,
-            height - legendHeight
-        )
+        // Calculate the available space for the chart, accounting for the legend
+        val availableWidth = width - legendWidth
+        val availableHeight = height - legendHeight
 
-        radius = chartSize * 0.45f // Leave some margin
+        // Use the smaller dimension to ensure the chart fits on screen
+        val chartSize = min(availableWidth, availableHeight)
 
+        // Calculate radius based on available space
+        radius = chartSize * 0.4f // Reduced from 0.45f to ensure it fits
+
+        // Calculate the center coordinates to ensure the chart is centered
         val centerX = when (legendPosition) {
-            LegendPosition.RIGHT -> width * 0.25f
-            LegendPosition.LEFT -> width * 0.75f
-            else -> width * 0.5f
+            LegendPosition.RIGHT -> availableWidth / 2f
+            LegendPosition.LEFT -> (width - availableWidth) + (availableWidth / 2f)
+            else -> width / 2f
         }
 
         val centerY = when (legendPosition) {
-            LegendPosition.BOTTOM -> height * 0.35f
-            LegendPosition.TOP -> height * 0.65f
-            else -> height * 0.5f
+            LegendPosition.BOTTOM -> availableHeight / 2f
+            LegendPosition.TOP -> (height - availableHeight) + (availableHeight / 2f)
+            else -> height / 2f
         }
 
         // Draw the pie chart
@@ -206,15 +213,15 @@ class PieChartView @JvmOverloads constructor(
     }
 
     private fun getContrastColor(color: Int): Int {
-        val r = Color.red(color)
-        val g = Color.green(color)
-        val b = Color.blue(color)
+        val r = android.graphics.Color.red(color)
+        val g = android.graphics.Color.green(color)
+        val b = android.graphics.Color.blue(color)
 
         // Calculate luminance - simplified version
         val luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255
 
         // Return white for dark colors, black for light colors
-        return if (luminance < 0.6) Color.WHITE else Color.BLACK
+        return if (luminance < 0.6) android.graphics.Color.WHITE else android.graphics.Color.BLACK
     }
 
     data class PieSegment(
@@ -236,28 +243,30 @@ fun CategoryPieChart(
     data: List<CategoryPerformance>,
     modifier: Modifier = Modifier
 ) {
+    val textColor = MaterialTheme.colorScheme.onSurface.toArgb()
+
+    // Define vibrant colors for pie chart segments
+    val colors = listOf(
+        Color(0xFFFF5252).toArgb(), // Red
+        Color(0xFF448AFF).toArgb(), // Blue
+        Color(0xFFFFEB3B).toArgb(), // Yellow
+        Color(0xFF4CAF50).toArgb(), // Green
+        Color(0xFFFF9800).toArgb(), // Orange
+        Color(0xFF9C27B0).toArgb(), // Purple
+        Color(0xFF607D8B).toArgb(), // Blue Grey
+        Color(0xFFE91E63).toArgb()  // Pink
+    )
+
     AndroidView(
         modifier = modifier,
         factory = { context ->
             PieChartView(context).apply {
                 this.showLegend = true
                 this.legendPosition = PieChartView.LegendPosition.RIGHT
+                this.textColor = textColor
             }
         },
         update = { view ->
-            // Generate distinct colors for categories
-            val colors = listOf(
-                Color.parseColor("#6200EE"), // Purple
-                Color.parseColor("#03DAC5"), // Teal
-                Color.parseColor("#FF5722"), // Deep Orange
-                Color.parseColor("#4CAF50"), // Green
-                Color.parseColor("#2196F3"), // Blue
-                Color.parseColor("#FFC107"), // Amber
-                Color.parseColor("#9C27B0"), // Purple
-                Color.parseColor("#009688"), // Teal
-                Color.parseColor("#E91E63")  // Pink
-            )
-
             val chartData = data.mapIndexed { index, category ->
                 PieChartView.PieSegment(
                     label = category.categoryName,
@@ -266,6 +275,7 @@ fun CategoryPieChart(
                 )
             }
             view.segments = chartData
+            view.textColor = textColor
         }
     )
 }
@@ -278,12 +288,20 @@ fun OrderStatusPieChart(
     data: OrderStatusDistribution,
     modifier: Modifier = Modifier
 ) {
+    val textColor = MaterialTheme.colorScheme.onSurface.toArgb()
+
+    // Vibrant colors for order status
+    val completedColor = Color(0xFF4CAF50).toArgb()  // Green
+    val inProgressColor = Color(0xFF2196F3).toArgb() // Blue
+    val canceledColor = Color(0xFFF44336).toArgb()   // Red
+
     AndroidView(
         modifier = modifier,
         factory = { context ->
             PieChartView(context).apply {
                 this.showLegend = true
                 this.legendPosition = PieChartView.LegendPosition.BOTTOM
+                this.textColor = textColor
             }
         },
         update = { view ->
@@ -291,21 +309,22 @@ fun OrderStatusPieChart(
                 PieChartView.PieSegment(
                     label = "Completed",
                     value = data.completed.toFloat(),
-                    color = Color.parseColor("#4CAF50") // Green
+                    color = completedColor
                 ),
                 PieChartView.PieSegment(
                     label = "In Progress",
                     value = data.inProgress.toFloat(),
-                    color = Color.parseColor("#2196F3") // Blue
+                    color = inProgressColor
                 ),
                 PieChartView.PieSegment(
                     label = "Canceled",
                     value = data.canceled.toFloat(),
-                    color = Color.parseColor("#F44336") // Red
+                    color = canceledColor
                 )
             ).filter { it.value > 0 } // Only show segments with values > 0
 
             view.segments = chartData
+            view.textColor = textColor
         }
     )
 }
