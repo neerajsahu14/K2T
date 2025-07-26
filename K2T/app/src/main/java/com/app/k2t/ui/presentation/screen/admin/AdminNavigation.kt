@@ -1,5 +1,6 @@
 package com.app.k2t.ui.presentation.screen.admin
 
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
@@ -11,6 +12,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.navigation.NavDestination.Companion.hierarchy
+import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -23,6 +25,7 @@ import com.app.k2t.ui.presentation.screen.admin.foodcategory.CategoryDetailsScre
 import com.app.k2t.ui.presentation.screen.admin.foodcategory.CreateAndUpdateCategory
 import com.app.k2t.ui.presentation.screen.admin.food.AddEditFoodScreen
 import com.app.k2t.ui.presentation.screen.admin.food.FoodScreen
+import com.app.k2t.ui.presentation.screen.admin.foodcategory.ManageCategoryFoodsScreen
 
 sealed class BottomNavItem(val route: String, val label: String, val icon: Int) {
     object Food : BottomNavItem("FoodScreen", "Foods", R.drawable.food_bank)
@@ -33,15 +36,50 @@ sealed class BottomNavItem(val route: String, val label: String, val icon: Int) 
 fun AdminNavigation(modifier: Modifier = Modifier) {
     val navController: NavHostController = rememberNavController()
     val bottomNavItems = listOf(BottomNavItem.Food, BottomNavItem.Categories)
+    val currentBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = currentBackStackEntry?.destination?.route
+    val contentPadding = PaddingValues()
+    // Show bottom navigation only for main screens (not detail screens)
+    val showBottomNav = when (currentRoute) {
+        BottomNavItem.Food.route, BottomNavItem.Categories.route -> true
+        else -> false
+    }
 
     Scaffold(
         bottomBar = {
-            BottomNavigationBar(navController = navController, items = bottomNavItems)
+            if (showBottomNav) {
+                NavigationBar {
+                    val currentDestination by navController.currentBackStackEntryAsState()
+                    bottomNavItems.forEach { item ->
+                        NavigationBarItem(
+                            selected = currentDestination?.destination?.hierarchy?.any { it.route == item.route } == true,
+                            onClick = {
+                                navController.navigate(item.route) {
+                                    // Pop up to the start destination of the graph to
+                                    // avoid building up a large stack of destinations
+                                    // on the back stack as users select items
+                                    popUpTo(navController.graph.findStartDestination().id) {
+                                        saveState = true
+                                    }
+                                    // Avoid multiple copies of the same destination when
+                                    // reselecting the same item
+                                    launchSingleTop = true
+                                    // Restore state when reselecting a previously selected item
+                                    restoreState = true
+                                }
+                            },
+                            icon = { Icon(painter = painterResource(id = item.icon), contentDescription = item.label) },
+                            label = { Text(item.label) }
+                        )
+                    }
+                }
+            }
         }
-    ) { it
+    ) { innerPadding ->
         NavHost(
             navController = navController,
             startDestination = BottomNavItem.Food.route,
+            modifier = Modifier.padding(innerPadding)
         ) {
             composable(BottomNavItem.Food.route) {
                 FoodScreen(
@@ -54,8 +92,7 @@ fun AdminNavigation(modifier: Modifier = Modifier) {
                 AllCatagoryScreen(
                     onCategoryClick = { category ->
                         val categoryId = category.id
-                        val foodsId = category.foodsIds.joinToString(",")
-                        navController.navigate("CategoryDetailsScreen?categoryId=$categoryId&foodsId=$foodsId")
+                        navController.navigate("CategoryDetailsScreen/$categoryId")
                     },
                     onAddCategoryClick = {
                         navController.navigate("CreateAndUpdateCategory")
@@ -63,24 +100,24 @@ fun AdminNavigation(modifier: Modifier = Modifier) {
                 )
             }
             composable(
-                route = "CategoryDetailsScreen?categoryId={categoryId}&foodsId={foodsId}",
+                route = "CategoryDetailsScreen/{categoryId}",
                 arguments = listOf(
-                    navArgument("categoryId") { nullable = false },
-                    navArgument("foodsId") { nullable = false }
+                    navArgument("categoryId") { nullable = false }
                 )
             ) { backStackEntry ->
                 val categoryId = backStackEntry.arguments?.getString("categoryId") ?: ""
-                val foodsId = backStackEntry.arguments?.getString("foodsId")?.split(",") ?: emptyList()
                 CategoryDetailsScreen(
                     categoryId = categoryId,
-                    foodsId = foodsId,
-                    onAddFoodClick = { foodId ->
-                        navController.navigate("AddEditFoodScreen?foodId=$foodId")
-                    },
                     onEditFoodClick = { foodId ->
                         navController.navigate("AddEditFoodScreen?foodId=$foodId")
                     },
-                    onBackClick = { navController.popBackStack() }
+                    onManageFoodsClick = { catId ->
+                        navController.navigate("ManageCategoryFoodsScreen/$catId")
+                    },
+                    onBackClick = { navController.popBackStack() },
+                    onEditCategoryClick = { catId ->
+                        navController.navigate("CreateAndUpdateCategory?categoryId=$catId")
+                    }
                 )
             }
             composable(
@@ -104,24 +141,21 @@ fun AdminNavigation(modifier: Modifier = Modifier) {
                 val categoryId = backStackEntry.arguments?.getString("categoryId")
                 CreateAndUpdateCategory(
                     categoryId = categoryId,
-                    onSave = { navController.popBackStack() }
+                    onDismiss = { navController.popBackStack() }
                 )
             }
-        }
-    }
-}
-
-@Composable
-fun BottomNavigationBar(navController: NavHostController, items: List<BottomNavItem>) {
-    NavigationBar {
-        val currentDestination by navController.currentBackStackEntryAsState()
-        items.forEach { item ->
-            NavigationBarItem(
-                selected = currentDestination?.destination?.hierarchy?.any { it.route == item.route } == true,
-                onClick = { navController.navigate(item.route) },
-                icon = { Icon(painter = painterResource(id = item.icon), contentDescription = item.label) },
-                label = { Text(item.label) }
-            )
+            composable(
+                route = "ManageCategoryFoodsScreen/{categoryId}",
+                arguments = listOf(
+                    navArgument("categoryId") { nullable = false }
+                )
+            ) { backStackEntry ->
+                val categoryId = backStackEntry.arguments?.getString("categoryId") ?: ""
+                ManageCategoryFoodsScreen(
+                    categoryId = categoryId,
+                    onBackClick = { navController.popBackStack() }
+                )
+            }
         }
     }
 }

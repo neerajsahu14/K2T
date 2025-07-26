@@ -31,14 +31,11 @@ class FoodCategoryViewModel : ViewModel() , KoinComponent{
         viewModelScope.launch {
             _loading.value = true
             _error.value = null
-            try {
-                repository.getAllFoodCategories().collect { categoryList ->
-                    _categories.value = categoryList
+            repository.getAllFoodCategories().collect { categoryList ->
+                _categories.value = categoryList
+                if (_loading.value) {
+                    _loading.value = false
                 }
-            } catch (e: Exception) {
-                _error.value = "Failed to fetch categories: ${e.message}"
-            } finally {
-                _loading.value = false
             }
         }
     }
@@ -46,9 +43,9 @@ class FoodCategoryViewModel : ViewModel() , KoinComponent{
     fun createCategory(category: FoodCategory) {
         viewModelScope.launch {
             _loading.value = true
+            _error.value = null
             try {
                 repository.createFoodCategory(category)
-                fetchCategories() // Refresh categories after creating a new one
             } catch (e: Exception) {
                 _error.value = "Failed to create category: ${e.message}"
             } finally {
@@ -60,9 +57,9 @@ class FoodCategoryViewModel : ViewModel() , KoinComponent{
     fun updateCategory(category: FoodCategory) {
         viewModelScope.launch {
             _loading.value = true
+            _error.value = null
             try {
                 repository.updateFoodCategory(category)
-                fetchCategories() // Refresh categories after updating
             } catch (e: Exception) {
                 _error.value = "Failed to update category: ${e.message}"
             } finally {
@@ -74,13 +71,31 @@ class FoodCategoryViewModel : ViewModel() , KoinComponent{
     fun deleteCategory(categoryId: String) {
         viewModelScope.launch {
             _loading.value = true
+            _error.value = null
             try {
                 repository.deleteFoodCategory(categoryId)
-                fetchCategories() // Refresh categories after deletion
             } catch (e: Exception) {
                 _error.value = "Failed to delete category: ${e.message}"
             } finally {
                 _loading.value = false
+            }
+        }
+    }
+
+    fun toggleFoodInCategory(categoryId: String, foodId: String) {
+        viewModelScope.launch {
+            val category = _categories.value.find { it.id == categoryId }
+            if (category != null) {
+                val updatedFoodIds = category.foodsIds.toMutableList()
+                if (updatedFoodIds.contains(foodId)) {
+                    updatedFoodIds.remove(foodId)
+                } else {
+                    updatedFoodIds.add(foodId)
+                }
+                val updatedCategory = category.copy(foodsIds = updatedFoodIds)
+                updateCategory(updatedCategory)
+            } else {
+                _error.value = "Category not found to toggle food."
             }
         }
     }
