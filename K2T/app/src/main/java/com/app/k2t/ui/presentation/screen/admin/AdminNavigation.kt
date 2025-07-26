@@ -26,22 +26,24 @@ import com.app.k2t.ui.presentation.screen.admin.foodcategory.CreateAndUpdateCate
 import com.app.k2t.ui.presentation.screen.admin.food.AddEditFoodScreen
 import com.app.k2t.ui.presentation.screen.admin.food.FoodScreen
 import com.app.k2t.ui.presentation.screen.admin.foodcategory.ManageCategoryFoodsScreen
+import com.app.k2t.ui.presentation.screen.admin.analytics.AnalyticsScreen
 
 sealed class BottomNavItem(val route: String, val label: String, val icon: Int) {
     object Food : BottomNavItem("FoodScreen", "Foods", R.drawable.food_bank)
     object Categories : BottomNavItem("AllCategoryScreen", "Categories", R.drawable.category)
+    object Analytics : BottomNavItem("AnalyticsScreen", "Analytics", R.drawable.analytics)
 }
 
 @Composable
 fun AdminNavigation(modifier: Modifier = Modifier) {
     val navController: NavHostController = rememberNavController()
-    val bottomNavItems = listOf(BottomNavItem.Food, BottomNavItem.Categories)
+    val bottomNavItems = listOf(BottomNavItem.Food, BottomNavItem.Categories, BottomNavItem.Analytics)
     val currentBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = currentBackStackEntry?.destination?.route
     val contentPadding = PaddingValues()
     // Show bottom navigation only for main screens (not detail screens)
     val showBottomNav = when (currentRoute) {
-        BottomNavItem.Food.route, BottomNavItem.Categories.route -> true
+        BottomNavItem.Food.route, BottomNavItem.Categories.route, BottomNavItem.Analytics.route -> true
         else -> false
     }
 
@@ -143,6 +145,9 @@ fun AdminNavigation(modifier: Modifier = Modifier) {
                     categoryId = categoryId,
                     onDismiss = { navController.popBackStack() }
                 )
+            }
+            composable(BottomNavItem.Analytics.route) {
+                AnalyticsScreen()
             }
             composable(
                 route = "ManageCategoryFoodsScreen/{categoryId}",
