@@ -8,6 +8,10 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -32,8 +36,9 @@ import com.app.k2t.ui.presentation.screen.chef.ChefNavigation
 import com.app.k2t.ui.presentation.screen.table.TableNavigation
 import com.app.k2t.ui.presentation.screen.userauth.LoginScreen
 import com.app.k2t.ui.presentation.screen.userauth.UserRegisterScreen
+import com.app.k2t.ui.presentation.viewmodel.NavigationEvent
 import com.app.k2t.ui.theme.K2TTheme
-import com.app.k2t.ui.presentation.viewmodel.UserViewModel // Assuming your UserViewModel is here
+import com.app.k2t.ui.presentation.viewmodel.UserViewModel
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
@@ -116,45 +121,104 @@ class MainActivity : ComponentActivity() {
             K2TTheme {
                 val userViewModel: UserViewModel = this@MainActivity.userViewModel
                 val userState by userViewModel.userState.collectAsState()
+                val isLoading by userViewModel.isLoading.collectAsState()
                 val navController = rememberNavController()
-                var initialRoute by remember { mutableStateOf<String?>(null) }
 
-                // On relaunch, check if user is logged in and navigate to role_router if so
-                LaunchedEffect(userState) {
-                    if (userState != null && userState?.role != null) {
-                        navController.navigate("role_router") {
-                            popUpTo(0) { inclusive = true }
+                // Handles one-time navigation events from the ViewModel, like after login.
+                LaunchedEffect(Unit) {
+                    userViewModel.navigationEvents.collect { event ->
+                        when (event) {
+                            is NavigationEvent.NavigateToRoleRouter -> {
+                                navController.navigate("role_router") {
+                                    popUpTo("splash") { inclusive = true }
+                                }
+                            }
                         }
-                    } else {
-                        navController.navigate("login") {
-                            popUpTo(0) { inclusive = true }
+                    }
+                }
+
+                // Handles initial navigation and state changes (like sign-out).
+                LaunchedEffect(userState, isLoading) {
+                    if (!isLoading) {
+                        val currentRoute = navController.currentDestination?.route
+                        if (userState != null) {
+                            if (currentRoute != "role_router") {
+                                navController.navigate("role_router") {
+                                    popUpTo("splash") { inclusive = true }
+                                }
+                            }
+                        } else {
+                            if (currentRoute != "login") {
+                                navController.navigate("login") {
+                                    popUpTo("splash") { inclusive = true }
+                                }
+                            }
                         }
                     }
                 }
 
                 Scaffold { padding ->
-
-
                     NavHost(
                         navController = navController,
-                        startDestination = "login",
+                        startDestination = "splash", // Always start with a splash screen
+                        enterTransition = { fadeIn(animationSpec = tween(300)) },
+                        exitTransition = { fadeOut(animationSpec = tween(300)) }
                     ) {
-                        composable("login") {
+                        // A neutral splash screen shown during the initial loading phase
+                        composable("splash") {
+                            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                                CircularProgressIndicator()
+                            }
+                        }
+
+                        composable(
+                            "login",
+                            enterTransition = {
+                                slideIntoContainer(
+                                    towards = AnimatedContentTransitionScope.SlideDirection.Up,
+                                    animationSpec = tween(400)
+                                )
+                            },
+                            exitTransition = {
+                                slideOutOfContainer(
+                                    towards = AnimatedContentTransitionScope.SlideDirection.Down,
+                                    animationSpec = tween(400)
+                                )
+                            }
+                        ) {
                             LoginScreen(
                                 navController = navController,
-                                onSuccessfulLogin = {
-                                    navController.navigate("role_router") {
-                                        popUpTo("login") { inclusive = true }
-                                    }
-                                }
+                                userViewModel = userViewModel
                             )
                         }
-                        composable("signup") {
+                        composable(
+                            "signup",
+                            enterTransition = {
+                                slideIntoContainer(
+                                    towards = AnimatedContentTransitionScope.SlideDirection.Left,
+                                    animationSpec = tween(400)
+                                )
+                            },
+                            exitTransition = {
+                                slideOutOfContainer(
+                                    towards = AnimatedContentTransitionScope.SlideDirection.Right,
+                                    animationSpec = tween(400)
+                                )
+                            }
+                        ) {
                             UserRegisterScreen(
                                 navController = navController
                             )
                         }
-                        composable("role_router") {
+                        composable(
+                            "role_router",
+                            enterTransition = {
+                                slideIntoContainer(
+                                    towards = AnimatedContentTransitionScope.SlideDirection.Up,
+                                    animationSpec = tween(400)
+                                )
+                            }
+                        ) {
                             RoleRouter(userViewModel = userViewModel, navController = navController)
                         }
                     }
@@ -176,8 +240,7 @@ fun AuthNavigation(modifier: Modifier = Modifier) {
     ) {
         composable("login") {
             LoginScreen(
-                navController = navController,
-                onSuccessfulLogin = TODO()
+                navController = navController
             )
         }
         composable("signup") {
@@ -224,8 +287,12 @@ fun RoleRouter(
     navController: androidx.navigation.NavHostController
 ) {
     val userState by userViewModel.userState.collectAsState()
-    val isLoading = userState == null
-    if (isLoading) {
+
+    // RoleRouter is now only responsible for displaying the UI for the current user's role.
+    // Navigation is handled centrally in MainActivity.
+    if (userState == null) {
+        // If user becomes null (e.g., sign out), show a loading indicator
+        // while the main LaunchedEffect navigates back to the login screen.
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             CircularProgressIndicator()
         }
@@ -236,6 +303,7 @@ fun RoleRouter(
             "waiter" -> WaiterNavigation()
             "table" -> TableNavigation()
             else -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                // This case should rarely be seen as the userState check handles it.
                 Text("Unknown role or not logged in.")
             }
         }

@@ -1,5 +1,8 @@
 package com.app.k2t.ui.presentation.screen.userauth
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -21,76 +24,107 @@ import org.koin.androidx.compose.koinViewModel
 fun LoginScreen(
     modifier: Modifier = Modifier,
     navController: NavController,
-    onSuccessfulLogin: () -> Unit,
     userViewModel: UserViewModel = koinViewModel()
 ) {
     var username by remember { mutableStateOf(TextFieldValue("")) }
     var password by remember { mutableStateOf(TextFieldValue("")) }
     val authError by userViewModel.authError.collectAsState()
+    val isLoading by userViewModel.isLoading.collectAsState()
 
-    Column(
+    Box(
         modifier = modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-            .padding(16.dp),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
+            .background(MaterialTheme.colorScheme.background),
+        contentAlignment = Alignment.Center
     ) {
-        Card(
-            shape = RoundedCornerShape(16.dp),
-            elevation = CardDefaults.cardElevation(8.dp),
-            modifier = Modifier.widthIn(max = 400.dp)
+        // Loading indicator
+        AnimatedVisibility(
+            visible = isLoading,
+            enter = fadeIn(),
+            exit = fadeOut()
         ) {
             Column(
-                modifier = Modifier.padding(24.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
             ) {
-                Text(
-                    "User Login",
-                    style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
-                    color = MaterialTheme.colorScheme.primary
+                CircularProgressIndicator(
+                    color = MaterialTheme.colorScheme.primary,
+                    strokeWidth = 4.dp
                 )
                 Spacer(modifier = Modifier.height(16.dp))
-                TextField(
-                    value = username,
-                    onValueChange = { username = it },
-                    modifier = Modifier.fillMaxWidth(),
-                    label = { Text("Username") },
-                    singleLine = true,
-                    shape = RoundedCornerShape(8.dp)
-                )
-                Spacer(modifier = Modifier.height(12.dp))
-                TextField(
-                    value = password,
-                    onValueChange = { password = it },
-                    modifier = Modifier.fillMaxWidth(),
-                    label = { Text("Password") },
-                    singleLine = true,
-                    shape = RoundedCornerShape(8.dp),
-                    visualTransformation = PasswordVisualTransformation()
-                )
-                Spacer(modifier = Modifier.height(20.dp))
-                Button(
-                    onClick = {
-                        userViewModel.loginWithEmailPassword(
-                            username.text,
-                            password.text
-                        ) { destination ->
-                            onSuccessfulLogin()
-                        }
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(8.dp)
+                Text("Authenticating...", color = MaterialTheme.colorScheme.primary)
+            }
+        }
+
+        // Login form
+        AnimatedVisibility(
+            visible = !isLoading,
+            enter = fadeIn(),
+            exit = fadeOut()
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Card(
+                    shape = RoundedCornerShape(16.dp),
+                    elevation = CardDefaults.cardElevation(8.dp),
+                    modifier = Modifier.widthIn(max = 400.dp)
                 ) {
-                    Text("Login", fontWeight = FontWeight.Bold)
-                }
-                Spacer(modifier = Modifier.height(8.dp))
-                TextButton(onClick = { navController.navigate("signup") }) {
-                    Text("Register User", color = MaterialTheme.colorScheme.primary)
-                }
-                Spacer(modifier = Modifier.height(8.dp))
-                authError?.let {
-                    Text(it, color = MaterialTheme.colorScheme.error, fontSize = 14.sp)
+                    Column(
+                        modifier = Modifier.padding(24.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            "User Login",
+                            style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                        TextField(
+                            value = username,
+                            onValueChange = { username = it },
+                            modifier = Modifier.fillMaxWidth(),
+                            label = { Text("Username") },
+                            singleLine = true,
+                            shape = RoundedCornerShape(8.dp)
+                        )
+                        Spacer(modifier = Modifier.height(12.dp))
+                        TextField(
+                            value = password,
+                            onValueChange = { password = it },
+                            modifier = Modifier.fillMaxWidth(),
+                            label = { Text("Password") },
+                            singleLine = true,
+                            shape = RoundedCornerShape(8.dp),
+                            visualTransformation = PasswordVisualTransformation()
+                        )
+                        Spacer(modifier = Modifier.height(20.dp))
+                        Button(
+                            onClick = {
+                                userViewModel.loginWithEmailPassword(
+                                    username.text,
+                                    password.text
+                                )
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(8.dp),
+                            enabled = !isLoading
+                        ) {
+                            Text("Login", fontWeight = FontWeight.Bold)
+                        }
+                        Spacer(modifier = Modifier.height(8.dp))
+                        TextButton(onClick = { navController.navigate("signup") }) {
+                            Text("Register User", color = MaterialTheme.colorScheme.primary)
+                        }
+                        Spacer(modifier = Modifier.height(8.dp))
+                        authError?.let {
+                            Text(it, color = MaterialTheme.colorScheme.error, fontSize = 14.sp)
+                        }
+                    }
                 }
             }
         }
