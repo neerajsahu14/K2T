@@ -1,5 +1,6 @@
 package com.app.k2t.ui.presentation.viewmodel
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.app.k2t.firebase.model.FoodCategory
@@ -10,9 +11,9 @@ import kotlinx.coroutines.launch
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 
-class FoodCategoryViewModel : ViewModel() , KoinComponent{
+class FoodCategoryViewModel : ViewModel() , KoinComponent {
 
-    private val repository : FoodCategoryRepositoryImpl by inject()
+    private val repository: FoodCategoryRepositoryImpl by inject()
 
     private val _categories = MutableStateFlow<List<FoodCategory>>(emptyList())
     val categories: StateFlow<List<FoodCategory>> = _categories
@@ -31,14 +32,11 @@ class FoodCategoryViewModel : ViewModel() , KoinComponent{
         viewModelScope.launch {
             _loading.value = true
             _error.value = null
-            try {
-                repository.getAllFoodCategories().collect { categoryList ->
-                    _categories.value = categoryList
+            repository.getAllFoodCategories().collect { categoryList ->
+                _categories.value = categoryList
+                if (_loading.value) {
+                    _loading.value = false
                 }
-            } catch (e: Exception) {
-                _error.value = "Failed to fetch categories: ${e.message}"
-            } finally {
-                _loading.value = false
             }
         }
     }
@@ -46,9 +44,9 @@ class FoodCategoryViewModel : ViewModel() , KoinComponent{
     fun createCategory(category: FoodCategory) {
         viewModelScope.launch {
             _loading.value = true
+            _error.value = null
             try {
                 repository.createFoodCategory(category)
-                fetchCategories() // Refresh categories after creating a new one
             } catch (e: Exception) {
                 _error.value = "Failed to create category: ${e.message}"
             } finally {
@@ -60,9 +58,9 @@ class FoodCategoryViewModel : ViewModel() , KoinComponent{
     fun updateCategory(category: FoodCategory) {
         viewModelScope.launch {
             _loading.value = true
+            _error.value = null
             try {
                 repository.updateFoodCategory(category)
-                fetchCategories() // Refresh categories after updating
             } catch (e: Exception) {
                 _error.value = "Failed to update category: ${e.message}"
             } finally {
@@ -74,9 +72,9 @@ class FoodCategoryViewModel : ViewModel() , KoinComponent{
     fun deleteCategory(categoryId: String) {
         viewModelScope.launch {
             _loading.value = true
+            _error.value = null
             try {
                 repository.deleteFoodCategory(categoryId)
-                fetchCategories() // Refresh categories after deletion
             } catch (e: Exception) {
                 _error.value = "Failed to delete category: ${e.message}"
             } finally {
@@ -84,4 +82,39 @@ class FoodCategoryViewModel : ViewModel() , KoinComponent{
             }
         }
     }
+
+    fun toggleFoodInCategory(categoryId: String, foodId: String) {
+        viewModelScope.launch {
+            val category = _categories.value.find { it.id == categoryId }
+            if (category != null) {
+                val updatedFoodIds = category.foodsIds.toMutableList()
+                if (updatedFoodIds.contains(foodId)) {
+                    updatedFoodIds.remove(foodId)
+                } else {
+                    updatedFoodIds.add(foodId)
+                }
+                val updatedCategory = category.copy(foodsIds = updatedFoodIds)
+                updateCategory(updatedCategory)
+            } else {
+                _error.value = "Category not found to toggle food."
+            }
+        }
+    }
+
+    fun toggleCategoryVisibility(categoryId: String) {
+        viewModelScope.launch {
+            _loading.value = true
+            _error.value = null
+            val category = _categories.value.find { it.id == categoryId }
+            if (category != null) {
+                // Toggle the visibility status
+                val updatedCategory = category.copy(visible = !category.visible)
+                updateCategory(updatedCategory)
+            } else {
+                _error.value = "Category not found."
+            }
+            _loading.value = false
+        }
+    }
+
 }
