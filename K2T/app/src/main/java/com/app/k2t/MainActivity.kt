@@ -8,6 +8,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -107,15 +108,14 @@ class NetworkConnectivityObserver(context: Context) {
 
 // --- Main Activity ---
 class MainActivity : ComponentActivity() {
-    private val auth: FirebaseAuth by lazy { FirebaseAuth.getInstance() } // Lazy init
-    private val userViewModel: UserViewModel by inject() // Koin injection
 
-    private lateinit var networkObserver: NetworkConnectivityObserver
-
+    private val userViewModel: UserViewModel by inject()
+    private lateinit var networkConnectivityObserver: NetworkConnectivityObserver
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        networkObserver = NetworkConnectivityObserver(applicationContext)
+        installSplashScreen()
         enableEdgeToEdge()
+        networkConnectivityObserver = NetworkConnectivityObserver(applicationContext)
 
         setContent {
             K2TTheme {

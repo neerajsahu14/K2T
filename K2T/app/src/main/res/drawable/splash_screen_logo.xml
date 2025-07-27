@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Logo - increased size -->
+    <item android:gravity="center" android:top="-30dp">
+        <vector
+                android:height="48dp"
+                android:width="48dp"
+                android:viewportHeight="24"
+                android:viewportWidth="24"
+                android:tint="#000000">
+            <path
+                    android:fillColor="#000000"
+                    android:pathData="M18.06,22.99h1.66c0.84,0 1.53,-0.64 1.63,-1.46L23,5.05h-5L18,1h-1.97v4.05h-4.97l0.3,2.34c1.71,0.47 3.31,1.32 4.27,2.26 1.44,1.42 2.43,2.89 2.43,5.29v8.05zM1,21.99L1,21h15.03v0.99c0,0.55 -0.45,1 -1.01,1L2.01,22.99c-0.56,0 -1.01,-0.45 -1.01,-1zM16.03,14.99c0,-8 -15.03,-8 -15.03,0h15.03zM1.02,17h15v2h-15z"/>
+        </vector>
+    </item>
+
+    <!-- Text below logo -->
+    <item android:gravity="center" android:top="40dp">
+        <vector
+                android:height="32dp"
+                android:width="120dp"
+                android:viewportHeight="32"
+                android:viewportWidth="120">
+            <!-- K letter -->
+            <path android:fillColor="#333333"
+                  android:pathData="M10,8 L14,8 L14,14 L18,10 L23,10 L18,15 L23,20 L18,20 L14,16 L14,20 L10,20 Z"/>
+
+            <!-- 2 number -->
+            <path android:fillColor="#333333"
+                  android:pathData="M30,8 C32,8 34,9 34,11 C34,13 32,14 30,15 L34,15 L34,20 L26,20 L26,17 C28,16 30,15 30,13 C30,12 29,11 28,11 L26,11 L26,8 Z"/>
+
+            <!-- T letter -->
+            <path android:fillColor="#333333"
+                  android:pathData="M40,8 L56,8 L56,12 L50,12 L50,20 L46,20 L46,12 L40,12 Z"/>
+        </vector>
+    </item>
+</layer-list>
