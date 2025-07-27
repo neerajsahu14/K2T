@@ -10,13 +10,26 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.animation.core.FastOutLinearInEasing
+import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -28,6 +41,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -111,6 +127,7 @@ class MainActivity : ComponentActivity() {
 
     private val userViewModel: UserViewModel by inject()
     private lateinit var networkConnectivityObserver: NetworkConnectivityObserver
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         installSplashScreen()
@@ -137,18 +154,17 @@ class MainActivity : ComponentActivity() {
                     }
                 }
 
-                // Handles initial navigation and state changes (like sign-out).
+                // Handles initial navigation and state changes
                 LaunchedEffect(userState, isLoading) {
                     if (!isLoading) {
                         val currentRoute = navController.currentDestination?.route
-                        if (userState != null) {
-                            if (currentRoute != "role_router") {
+                        when {
+                            userState != null && currentRoute != "role_router" -> {
                                 navController.navigate("role_router") {
                                     popUpTo("splash") { inclusive = true }
                                 }
                             }
-                        } else {
-                            if (currentRoute != "login") {
+                            userState == null && currentRoute !in listOf("login", "signup") -> {
                                 navController.navigate("login") {
                                     popUpTo("splash") { inclusive = true }
                                 }
@@ -157,33 +173,125 @@ class MainActivity : ComponentActivity() {
                     }
                 }
 
-                Scaffold { padding ->
+                Scaffold{ paddingValues ->
                     NavHost(
                         navController = navController,
-                        startDestination = "splash", // Always start with a splash screen
-                        enterTransition = { fadeIn(animationSpec = tween(300)) },
-                        exitTransition = { fadeOut(animationSpec = tween(300)) }
+                        startDestination = "splash",
+                        enterTransition = {
+                            slideIntoContainer(
+                                towards = AnimatedContentTransitionScope.SlideDirection.Left,
+                                animationSpec = tween(300, easing = FastOutLinearInEasing)
+                            ) + fadeIn(animationSpec = tween(300))
+                        },
+                        exitTransition = {
+                            slideOutOfContainer(
+                                towards = AnimatedContentTransitionScope.SlideDirection.Right,
+                                animationSpec = tween(300, easing = LinearOutSlowInEasing)
+                            ) + fadeOut(animationSpec = tween(300))
+                        }
                     ) {
-                        // A neutral splash screen shown during the initial loading phase
+                        // Enhanced splash screen with app branding
                         composable("splash") {
-                            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                                CircularProgressIndicator()
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .background(
+                                        Brush.verticalGradient(
+                                            colors = listOf(
+                                                MaterialTheme.colorScheme.primary,
+                                                MaterialTheme.colorScheme.primaryContainer
+                                            )
+                                        )
+                                    ),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Column(
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    verticalArrangement = Arrangement.Center
+                                ) {
+                                    // App Logo/Icon
+                                    Card(
+                                        modifier = Modifier.size(120.dp),
+                                        shape = RoundedCornerShape(30.dp),
+                                        colors = CardDefaults.cardColors(
+                                            containerColor = MaterialTheme.colorScheme.surface
+                                        ),
+                                        elevation = CardDefaults.cardElevation(8.dp)
+                                    ) {
+                                        Box(
+                                            modifier = Modifier.fillMaxSize(),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            Column(verticalArrangement = Arrangement.Center,
+                                                horizontalAlignment = Alignment.CenterHorizontally) {
+                                                Icon(
+                                                    painter = painterResource(R.drawable.baseline_fastfood_24),
+                                                    contentDescription = "App Logo",
+                                                    tint = MaterialTheme.colorScheme.primary,
+                                                    modifier = Modifier.size(40.dp),
+                                                )
+                                                Text(
+                                                    text = "K2T",
+                                                    style = MaterialTheme.typography.titleMedium,
+                                                    color = MaterialTheme.colorScheme.primary,
+                                                    fontWeight = FontWeight.Bold
+                                                )
+                                            }
+                                        }
+                                    }
+
+                                    Spacer(modifier = Modifier.height(24.dp))
+
+                                    Text(
+                                        text = "Kitchen to Table",
+                                        style = MaterialTheme.typography.headlineSmall,
+                                        color = MaterialTheme.colorScheme.onPrimary,
+                                        fontWeight = FontWeight.Medium
+                                    )
+
+                                    Spacer(modifier = Modifier.height(40.dp))
+
+                                    CircularProgressIndicator(
+                                        color = MaterialTheme.colorScheme.onPrimary,
+                                        strokeWidth = 3.dp
+                                    )
+
+                                    Spacer(modifier = Modifier.height(16.dp))
+
+                                    Text(
+                                        text = "Loading...",
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f)
+                                    )
+                                }
                             }
                         }
 
                         composable(
                             "login",
                             enterTransition = {
-                                slideIntoContainer(
-                                    towards = AnimatedContentTransitionScope.SlideDirection.Up,
-                                    animationSpec = tween(400)
-                                )
+                                when (initialState.destination.route) {
+                                    "signup" -> slideIntoContainer(
+                                        towards = AnimatedContentTransitionScope.SlideDirection.Right,
+                                        animationSpec = tween(400)
+                                    )
+                                    else -> slideIntoContainer(
+                                        towards = AnimatedContentTransitionScope.SlideDirection.Up,
+                                        animationSpec = tween(400)
+                                    )
+                                }
                             },
                             exitTransition = {
-                                slideOutOfContainer(
-                                    towards = AnimatedContentTransitionScope.SlideDirection.Down,
-                                    animationSpec = tween(400)
-                                )
+                                when (targetState.destination.route) {
+                                    "signup" -> slideOutOfContainer(
+                                        towards = AnimatedContentTransitionScope.SlideDirection.Left,
+                                        animationSpec = tween(400)
+                                    )
+                                    else -> slideOutOfContainer(
+                                        towards = AnimatedContentTransitionScope.SlideDirection.Down,
+                                        animationSpec = tween(400)
+                                    )
+                                }
                             }
                         ) {
                             LoginScreen(
@@ -191,6 +299,7 @@ class MainActivity : ComponentActivity() {
                                 userViewModel = userViewModel
                             )
                         }
+
                         composable(
                             "signup",
                             enterTransition = {
@@ -207,19 +316,24 @@ class MainActivity : ComponentActivity() {
                             }
                         ) {
                             UserRegisterScreen(
-                                navController = navController
+                                navController = navController,
+                                userViewModel = userViewModel
                             )
                         }
+
                         composable(
                             "role_router",
                             enterTransition = {
                                 slideIntoContainer(
                                     towards = AnimatedContentTransitionScope.SlideDirection.Up,
                                     animationSpec = tween(400)
-                                )
+                                ) + fadeIn(animationSpec = tween(400))
                             }
                         ) {
-                            RoleRouter(userViewModel = userViewModel, navController = navController)
+                            RoleRouter(
+                                userViewModel = userViewModel,
+                                navController = navController
+                            )
                         }
                     }
                 }
