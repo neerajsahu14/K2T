@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="120dp"
+    android:height="32dp"
+    android:viewportWidth="120"
+    android:viewportHeight="32">
+
+    <!-- K letter -->
+    <path android:fillColor="#333333"
+          android:pathData="M10,8 L14,8 L14,14 L18,10 L23,10 L18,15 L23,20 L18,20 L14,16 L14,20 L10,20 Z"/>
+
+    <!-- 2 number -->
+    <path android:fillColor="#333333"
+          android:pathData="M30,8 C32,8 34,9 34,11 C34,13 32,14 30,15 L34,15 L34,20 L26,20 L26,17 C28,16 30,15 30,13 C30,12 29,11 28,11 L26,11 L26,8 Z"/>
+
+    <!-- T letter -->
+    <path android:fillColor="#333333"
+          android:pathData="M40,8 L56,8 L56,12 L50,12 L50,20 L46,20 L46,12 L40,12 Z"/>
+
+    <!-- App subtitle -->
+    <path android:fillColor="#666666"
+          android:pathData="M70,16 L72,16 L72,18 L70,18 Z M74,16 L76,16 L76,18 L74,18 Z M78,16 L80,16 L80,18 L78,18 Z"/>
+</vector>
