@@ -34,17 +34,13 @@ android {
             )
         }
     }
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
-    }
-    kotlinOptions {
-        jvmTarget = "11"
-    }
     buildFeatures {
         compose = true
         buildConfig = true
     }
+}
+kotlin {
+    jvmToolchain(23)
 }
 
 dependencies {
@@ -90,7 +86,7 @@ dependencies {
     implementation(libs.gson)
     implementation(libs.kotlinx.coroutines.android)
 
-    implementation("io.coil-kt:coil-compose:2.3.0")
+    implementation(libs.coil.compose)
     implementation(libs.translate)
     implementation(libs.kotlinx.coroutines.play.services)
     implementation(libs.androidx.core.splashscreen)
@@ -108,7 +104,7 @@ dependencies {
     implementation(libs.koin.android)
     implementation(libs.koin.androidx.compose)
 
-    implementation("com.cloudinary:cloudinary-android:3.0.2")
+    implementation(libs.cloudinary.android)
 
     // Testing dependencies
     testImplementation(libs.junit)

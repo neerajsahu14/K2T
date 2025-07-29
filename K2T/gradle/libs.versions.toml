@@ -1,14 +1,17 @@
 [versions]
-agp = "8.11.1"
+agp = "8.10.1"
+cloudinaryAndroid = "3.1.1"
 coilCompose = "2.3.0"
+coilComposeVersion = "2.3.0"
 coreSplashscreen = "1.0.1"
-firebaseAppcheckDebug = "18.0.0"
-firebaseBom = "33.14.0"
-gson = "2.11.0"
+firebaseAppcheckDebug = "19.0.0"
+firebaseBom = "34.0.0"
+gson = "2.13.1"
 hiltAndroid = "2.56.1"
-koinAndroid = "4.0.1"
-koinAndroidxCompose = "4.0.1"
-kotlin = "2.1.20"
+koinAndroid = "4.1.0"
+koinAndroidxCompose = "4.1.0"
+kotlin = "2.2.0"
+ksp = "2.2.0-2.0.2"
 coreKtx = "1.16.0"
 junit = "4.13.2"
 junitVersion = "1.2.1"
@@ -16,34 +19,34 @@ espressoCore = "3.6.1"
 kotlinxCoroutinesAndroid = "1.10.1"
 kotlinxCoroutinesPlayServices = "1.10.1"
 kotzillaSdk = "1.0.2-RC3"
-lifecycleRuntimeKtx = "2.9.0"
+lifecycleRuntimeKtx = "2.9.2"
 activityCompose = "1.10.1"
-composeBom = "2025.05.01"
-googleGmsGoogleServices = "4.4.2"
-firebaseAuth = "23.2.1"
+composeBom = "2025.07.00"
+googleGmsGoogleServices = "4.4.3"
+firebaseAuth = "24.0.0"
 credentials = "1.5.0"
 credentialsPlayServicesAuth = "1.5.0"
 googleid = "1.1.1"
-appcompat = "1.7.0"
+appcompat = "1.7.1"
 material = "1.12.0"
 activity = "1.10.1"
-lifecycleViewmodelCompose = "2.9.0"
-materialNavigation = "1.9.0-alpha03"
-firebaseFirestore = "25.1.4"
+lifecycleViewmodelCompose = "2.9.2"
+materialNavigation = "1.9.0-beta03"
+firebaseFirestore = "26.0.0"
 media3Exoplayer = "1.7.1"
-navigationCompose = "2.9.0"
-navigationRuntimeKtx = "2.9.0"
-playServicesAuth = "21.3.0"
-roomCompilerVersion = "2.7.1"
-roomKtx = "2.7.1"
-roomRuntime = "2.7.1"
-runtimeLivedata = "1.8.2"
+navigationCompose = "2.9.2"
+navigationRuntimeKtx = "2.9.2"
+playServicesAuth = "21.4.0"
+roomCompilerVersion = "2.7.2"
+roomKtx = "2.7.2"
+roomRuntime = "2.7.2"
+runtimeLivedata = "1.8.3"
 translate = "17.0.3"
-firebaseAi = "16.0.0"
-firebaseMessaging = "24.1.1"
-firebaseStorage = "21.0.1"
+firebaseAi = "17.0.0"
+firebaseMessaging = "25.0.0"
+firebaseStorage = "22.0.0"
 firebaseVertexai = "16.5.0"
-firebaseAppcheckPlayintegrity = "18.0.0"
+firebaseAppcheckPlayintegrity = "19.0.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -56,6 +59,8 @@ androidx-navigation-runtime-ktx = { module = "androidx.navigation:navigation-run
 androidx-room-ktx = { module = "androidx.room:room-ktx", version.ref = "roomKtx" }
 androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "roomRuntime" }
 androidx-runtime-livedata = { module = "androidx.compose.runtime:runtime-livedata", version.ref = "runtimeLivedata" }
+cloudinary-android = { module = "com.cloudinary:cloudinary-android", version.ref = "cloudinaryAndroid" }
+coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coilComposeVersion" }
 firebase-appcheck-debug = { module = "com.google.firebase:firebase-appcheck-debug", version.ref = "firebaseAppcheckDebug" }
 firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebaseBom" }
 gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
@@ -103,4 +108,5 @@ firebase-appcheck-playintegrity = { group = "com.google.firebase", name = "fireb
 android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+devtool-ksp = {id = "com.google.devtools.ksp", version.ref = "ksp"}
 google-gms-google-services = { id = "com.google.gms.google-services", version.ref = "googleGmsGoogleServices" }
