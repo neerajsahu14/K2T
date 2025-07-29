@@ -1,5 +1,6 @@
 package com.app.k2t.ui.presentation.screen.table
 
+import androidx.activity.enableEdgeToEdge
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
@@ -16,6 +17,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -60,8 +62,6 @@ data class NavigationItem(
     val badgeCount: Int?
 )
 
-// Commented out old OrdersScreen
-// ...existing code...
 
 @Composable
 fun ProfileScreen(
@@ -175,6 +175,7 @@ fun TableNavigation(
     }
 
     Scaffold(
+        modifier = Modifier.fillMaxSize(),
         bottomBar = {
             AnimatedVisibility(
                 visible = showBottomBar,
@@ -182,6 +183,7 @@ fun TableNavigation(
                 exit = fadeOut() + shrinkVertically()
             ) {
                 NavigationBar(
+                    modifier = Modifier.fillMaxWidth(),
                     containerColor = MaterialTheme.colorScheme.surface,
                     contentColor = MaterialTheme.colorScheme.onSurface,
                     tonalElevation = 8.dp,
@@ -215,7 +217,7 @@ fun TableNavigation(
 
                     navigationItems.forEach { item ->
                         val selected = currentDestination?.hierarchy?.any { it.route == item.route } == true
-
+                        val scale = if (selected) 1.15f else 1.0f
                         NavigationBarItem(
                             icon = {
                                 BadgedBox(
@@ -230,19 +232,27 @@ fun TableNavigation(
                                     Icon(
                                         painterResource(id = item.icon),
                                         contentDescription = item.label,
-                                        modifier = Modifier.size(24.dp)
+                                        modifier = Modifier
+                                            .size(24.dp)
+                                            .graphicsLayer {
+                                                scaleX = scale
+                                                scaleY = scale
+                                            }
                                     )
                                 }
                             },
                             label = {
                                 Text(
                                     item.label,
-                                    style = MaterialTheme.typography.labelMedium
+                                    style = MaterialTheme.typography.labelSmall,
+                                    modifier = Modifier.graphicsLayer {
+                                        alpha = if (selected) 1f else 0.7f
+                                    }
                                 )
                             },
                             selected = selected,
                             colors = NavigationBarItemDefaults.colors(
-                                selectedIconColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                                selectedIconColor = MaterialTheme.colorScheme.primary,
                                 selectedTextColor = MaterialTheme.colorScheme.primary,
                                 indicatorColor = MaterialTheme.colorScheme.primaryContainer,
                                 unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -250,14 +260,10 @@ fun TableNavigation(
                             ),
                             onClick = {
                                 navController.navigate(item.route) {
-                                    // Pop up to the start destination of the graph to
-                                    // avoid building up a large stack of destinations
                                     popUpTo(navController.graph.findStartDestination().id) {
                                         saveState = true
                                     }
-                                    // Avoid multiple copies of the same destination
                                     launchSingleTop = true
-                                    // Restore state when navigating back to a previously selected item
                                     restoreState = true
                                 }
                             }
@@ -270,7 +276,7 @@ fun TableNavigation(
         NavHost(
             navController = navController,
             startDestination = TableRoute.Menu.route,
-            modifier = Modifier.padding(paddingValues)
+            modifier = Modifier.fillMaxSize().padding(paddingValues)
         ) {
             composable(
                 TableRoute.Menu.route,
