@@ -63,12 +63,10 @@ dependencies {
     implementation(libs.androidx.activity)
     implementation(libs.androidx.lifecycle.viewmodel.android)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
-    implementation(libs.androidx.hilt.navigation.compose)
     implementation(libs.androidx.material.navigation)
     implementation (libs.play.services.auth)
     implementation (platform(libs.firebase.bom))
-    // Hilt dependencies
-    implementation(libs.hilt.android)
+
     implementation(libs.firebase.firestore)
 
     implementation(libs.androidx.room.runtime)
