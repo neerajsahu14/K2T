@@ -49,22 +49,16 @@ fun TableFoodDetailsScreen(
     val scrollState = rememberScrollState()
     val isFoodInCart by cartViewModel.isFoodInCart(food.foodId ?: "").collectAsState(initial = false)
     val allFoodInCart by cartViewModel.allFoodInCart.collectAsState()
-
     val foodInCart = allFoodInCart.find { it.foodId == food.foodId }
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             TopAppBar(
-                title = { }, // Title is handled in content for better alignment
+                title = {},
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = MaterialTheme.colorScheme.onSurface)
-                    }
-                },
-                actions = {
-                    IconButton(onClick = { /* Share functionality */ }) {
-                        Icon(Icons.Default.Share, contentDescription = "Share", tint = MaterialTheme.colorScheme.onSurface)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -76,67 +70,59 @@ fun TableFoodDetailsScreen(
         bottomBar = {
             // Add to Cart Bottom Bar
             Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(MaterialTheme.colorScheme.surfaceContainer.copy(alpha = 0.9f)),
+                modifier = Modifier.widthIn(max = 840.dp)
+                    .fillMaxWidth(),
                 contentAlignment = Alignment.Center
             ) {
-                Surface(
-                    modifier = Modifier.widthIn(max = 840.dp),
-                    shadowElevation = 8.dp,
-                    tonalElevation = 3.dp,
-                    color = Color.Transparent
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 12.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Column {
-                            Text(
-                                text = "Total: ₹${String.format(Locale.getDefault(),"%.0f", (food.price ?: 0.0) * quantity)}",
-                                style = MaterialTheme.typography.headlineSmall,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.primary
-                            )
-                            Text(
-                                text = "$quantity × ₹${String.format(Locale.getDefault(),"%.0f", food.price ?: 0.0)}",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
+                    Column {
+                        Text(
+                            text = "Total: ₹${String.format(Locale.getDefault(),"%.0f", (food.price ?: 0.0) * quantity)}",
+                            style = MaterialTheme.typography.headlineSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                        Text(
+                            text = "$quantity × ₹${String.format(Locale.getDefault(),"%.0f", food.price ?: 0.0)}",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
 
-                        Button(
-                            onClick = {
-                                if (isFoodInCart && foodInCart != null) {
-                                    val newQuantity = (foodInCart.quantity ?: 0) + quantity
-                                    val updatedFoodInCart = foodInCart.copy(quantity = newQuantity)
-                                    cartViewModel.updateFood(updatedFoodInCart)
-                                } else {
-                                    val newFoodInCart = FoodInCart(
-                                        foodId = food.foodId ?: "",
-                                        quantity = quantity,
-                                        foodName = food.name.toString(),
-                                        unitPrice = food.price,
-                                        totalPrice = food.price?.times(quantity),
-                                        imageUrl = food.imageUrl
-                                    )
-                                    cartViewModel.insertFood(newFoodInCart)
-                                }
-                            },
-                            enabled = food.availability == true,
-                            modifier = Modifier.height(50.dp),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = MaterialTheme.colorScheme.primary
-                            ),
-                            shape = RoundedCornerShape(12.dp)
-                        ) {
-                            Icon(Icons.Default.ShoppingCart, contentDescription = null)
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(if (isFoodInCart) "Add More" else "Add to Cart")
-                        }
+                    Button(
+                        onClick = {
+                            if (isFoodInCart && foodInCart != null) {
+                                val newQuantity = (foodInCart.quantity ?: 0) + quantity
+                                val updatedFoodInCart = foodInCart.copy(quantity = newQuantity)
+                                cartViewModel.updateFood(updatedFoodInCart)
+                            } else {
+                                val newFoodInCart = FoodInCart(
+                                    foodId = food.foodId ?: "",
+                                    quantity = quantity,
+                                    foodName = food.name.toString(),
+                                    unitPrice = food.price,
+                                    totalPrice = food.price?.times(quantity),
+                                    imageUrl = food.imageUrl
+                                )
+                                cartViewModel.insertFood(newFoodInCart)
+                            }
+                        },
+                        enabled = food.availability == true,
+                        modifier = Modifier.height(50.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.primary
+                        ),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Icon(Icons.Default.ShoppingCart, contentDescription = null)
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(if (isFoodInCart) "Add More" else "Add to Cart")
                     }
                 }
             }
@@ -145,7 +131,7 @@ fun TableFoodDetailsScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(bottom = paddingValues.calculateBottomPadding()) // Only apply bottom padding for the bottom bar
+                .padding(bottom = paddingValues.calculateBottomPadding())
                 .verticalScroll(scrollState)
         ) {
             // Food Image/Video Section
