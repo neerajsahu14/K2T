@@ -73,9 +73,9 @@ To transform K2T into the global standard for restaurant digital infrastructure,
 ### 🍽️ Customer Experience
 > *An intuitive and immersive interface for diners*
 
-- **📱 Immersive Digital Menu**: Browse high-resolution images, detailed descriptions, ingredients, and preparation times
+- **📱 Immersive Digital Menu**: Browse high-resolution images, detailed descriptions, ingredients,nutritions, calories.
 - **🛒 Intelligent Cart System**: Seamless, offline-first cart to add, modify, and customize orders with ease
-- **💳 Secure Payment Integration**: Multiple payment options, split-bill functionality, and instant digital receipts
+- **💳 Secure Payment Integration**: Multiple payment options, bill functionality, and instant digital receipts and payment link though sms.
 - **⏳ Real-time Order Tracking**: Keep customers informed with live status updates from the kitchen
 - **⭐ Personalized Recommendations**: AI-powered suggestions based on preferences and order history
 - **🔔 Smart Notifications**: Real-time updates on order status, special offers, and table-specific announcements
@@ -255,13 +255,6 @@ com.app.k2t/
 | **Database** | Firestore + Room | Real-time + offline storage |
 | **Authentication** | Firebase Auth | Secure user management |
 | **File Storage** | Firebase Storage + Cloudinary | Image and file management |
-
-### 🧪 Testing & Quality
-| Component | Technology | Purpose |
-|-----------|------------|---------|
-| **Unit Testing** | JUnit + Mockk | Reliable code testing |
-| **UI Testing** | Compose Testing + Espresso | End-to-end testing |
-| **Code Quality** | Detekt + Ktlint | Code analysis and formatting |
 
 ---
 
