@@ -17,4 +17,6 @@ interface FoodCategoryRepository {
     fun getAllFoodCategories(): Flow<List<FoodCategory>>
     suspend fun updateFoodCategory(foodCategory: FoodCategory)
     suspend fun deleteFoodCategory(id: String)
+    suspend fun permanentlyDeleteFoodCategory(id: String)
+    suspend fun restoreFoodCategory(id: String)
 }

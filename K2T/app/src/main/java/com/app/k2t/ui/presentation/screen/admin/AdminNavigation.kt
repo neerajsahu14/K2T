@@ -40,6 +40,7 @@ import com.app.k2t.ui.presentation.screen.admin.foodcategory.AllCatagoryScreen
 import com.app.k2t.ui.presentation.screen.admin.foodcategory.CategoryDetailsScreen
 import com.app.k2t.ui.presentation.screen.admin.foodcategory.CreateAndUpdateCategory
 import com.app.k2t.ui.presentation.screen.admin.foodcategory.ManageCategoryFoodsScreen
+import com.app.k2t.ui.presentation.screen.admin.food.FoodDetailsScreen
 
 sealed class BottomNavItem(val route: String, val label: String, val icon: Int) {
     object Food : BottomNavItem("FoodScreen", "Foods", R.drawable.food_bank)
@@ -144,6 +145,9 @@ fun AdminNavigation(modifier: Modifier = Modifier) {
                 FoodScreen(
                     onNavigateToAddEditFood = { foodId ->
                         navController.navigate("AddEditFoodScreen?foodId=$foodId")
+                    },
+                    onNavigateToFoodDetails = { foodId ->
+                        navController.navigate("FoodDetailsScreen/$foodId")
                     }
                 )
             }
@@ -216,6 +220,24 @@ fun AdminNavigation(modifier: Modifier = Modifier) {
                 ManageCategoryFoodsScreen(
                     categoryId = categoryId,
                     onBackClick = { navController.popBackStack() }
+                )
+            }
+            composable(
+                route = "FoodDetailsScreen/{foodId}",
+                arguments = listOf(
+                    navArgument("foodId") { nullable = false }
+                )
+            ) { backStackEntry ->
+                val foodId = backStackEntry.arguments?.getString("foodId") ?: ""
+                FoodDetailsScreen(
+                    foodId = foodId,
+                    onBackClick = { navController.popBackStack() },
+                    onEditClick = { foodId ->
+                        navController.navigate("AddEditFoodScreen?foodId=$foodId")
+                    },
+                    onDeleteSuccess = {
+                        navController.popBackStack()
+                    }
                 )
             }
         }

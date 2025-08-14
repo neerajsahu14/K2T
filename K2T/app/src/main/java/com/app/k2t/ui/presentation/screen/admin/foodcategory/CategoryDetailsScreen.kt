@@ -384,25 +384,6 @@ fun FoodCardForCategory(
                         fontWeight = FontWeight.SemiBold
                     )
 
-                    // Show prep time if available
-                    food.details?.prepTime?.let { prepTime ->
-                        Text(
-                            text = " • ",
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        Icon(
-                            painter = painterResource(R.drawable.schedule),
-                            contentDescription = null,
-                            modifier = Modifier.size(14.dp),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        Spacer(modifier = Modifier.width(2.dp))
-                        Text(
-                            text = prepTime,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
                 }
 
                 Spacer(modifier = Modifier.height(4.dp))

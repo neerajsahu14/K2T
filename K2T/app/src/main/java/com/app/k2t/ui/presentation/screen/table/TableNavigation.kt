@@ -327,24 +327,6 @@ fun TableNavigation(
                         food = food,
                         onBackClick = {
                             navController.navigateUp()
-                        },
-                        onAddToCart = { quantity ->
-                            // Add to cart logic
-                            val existingItemIndex = cartItems.indexOfFirst { it.food.foodId == food.foodId }
-                            cartItems = if (existingItemIndex >= 0) {
-                                cartItems.toMutableList().apply {
-                                    this[existingItemIndex] = this[existingItemIndex].copy(
-                                        quantity = this[existingItemIndex].quantity + quantity
-                                    )
-                                }
-                            } else {
-                                cartItems + CartItem(food, quantity)
-                            }
-
-                            // Navigate to cart with animation
-                            navController.navigate(TableRoute.Cart.route) {
-                                popUpTo(TableRoute.Menu.route)
-                            }
                         }
                     )
                 }
