@@ -65,7 +65,8 @@ import org.koin.androidx.compose.koinViewModel
 fun FoodScreen(
     modifier: Modifier = Modifier,
     viewModel: FoodViewModel = koinViewModel(),
-    onNavigateToAddEditFood: (String?) -> Unit
+    onNavigateToAddEditFood: (String?) -> Unit,
+    onNavigateToFoodDetails: (String) -> Unit = {}  // Added parameter for food details navigation
 ) {
     val foods by viewModel.foods.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
@@ -200,7 +201,8 @@ fun FoodScreen(
                             onToggleAvailability = {
                                 val updatedFood = it.copy(availability = !(it.availability ?: false))
                                 it.foodId?.let { id -> viewModel.updateFood(id, updatedFood) }
-                            }
+                            },
+                            onFoodClick = { onNavigateToFoodDetails(food.foodId ?: "") } // Navigate to food details
                         )
                     }
                 }

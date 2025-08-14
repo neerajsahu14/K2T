@@ -20,6 +20,7 @@ import com.google.firebase.Timestamp
  *                   Defaults to `true`.
  * @property createdAt A [Timestamp] indicating when this food category was created or last updated.
  *                     This can be null if the creation timestamp is not available or applicable.
+ * @property valid A [Boolean] indicating the [category] is deleted  or not.
  */
 data class FoodCategory(
     val id: String = "",
@@ -29,5 +30,6 @@ data class FoodCategory(
     val priority: Int = 0,
     val foodsIds: List<String> = emptyList(),
     val visible: Boolean = true,
-    val createdAt: Timestamp? = null
+    val createdAt: Timestamp? = null,
+    val valid: Boolean = true // Indicates if the category is valid or softly deleted
 )

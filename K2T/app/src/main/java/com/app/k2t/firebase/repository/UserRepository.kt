@@ -1,6 +1,7 @@
 package com.app.k2t.firebase.repository
 
 import com.app.k2t.firebase.model.User
+import kotlinx.coroutines.flow.Flow
 
 /**
  * Interface defining operations for managing user data in a repository.
@@ -15,4 +16,6 @@ interface UserRepository {
     suspend fun getUser(userId: String): User?
     suspend fun checkUser(userId: String): Boolean
     suspend fun getUserByEmail(emailId : String) : User?
+    suspend fun deleteUser(userId: String): Boolean
+    suspend fun getAllUsers(): Flow<List<User>>
 }
