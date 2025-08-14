@@ -329,7 +329,7 @@ We welcome contributions from developers, designers, and restaurant industry exp
 | 🐛 **Bug Reports** | ✨ **Feature Requests** | 🔧 **Code Contributions** |
 |:---:|:---:|:---:|
 | Found a bug? Help us fix it! | Have a great idea? We'd love to hear it! | Ready to code? Let's build together! |
-| [Report an Issue](https://github.com/yourusername/K2T/issues) | [Request a Feature](https://github.com/yourusername/K2T/issues/new) | [See Contributing Guide](https://github.com/yourusername/K2T/blob/main/CONTRIBUTING.md) |
+| [Report an Issue](https://github.com/neerajsahu14K2T/K2T/issues) | [Request a Feature](https://github.com/neerajsahu14K2T/K2T/issues/new) | [See Contributing Guide](https://github.com/neerajsahu14K2T/K2T/blob/main/CONTRIBUTING.md) |
 
 </div>
 
@@ -353,7 +353,7 @@ We welcome contributions from developers, designers, and restaurant industry exp
 
 ## 📄 License
 
-This project is licensed under the **MIT License**. See the [LICENSE](https://github.com/yourusername/K2T/blob/main/LICENSE) file for details.
+This project is licensed under the **MIT License**. See the [LICENSE](https://github.com/neerajsahu14K2T/K2T/blob/main/LICENSE) file for details.
 
 ```
 MIT License - Feel free to use, modify, and distribute
@@ -386,10 +386,10 @@ MIT License - Feel free to use, modify, and distribute
 
 ### 📞 Get Support
 
-- 🐛 **Bug Reports**: [GitHub Issues](https://github.com/yourusername/K2T/issues)
-- 💬 **Questions**: [GitHub Discussions](https://github.com/yourusername/K2T/discussions)
+- 🐛 **Bug Reports**: [GitHub Issues](https://github.com/neerajsahu14K2T/K2T/issues)
+- 💬 **Questions**: [GitHub Discussions](https://github.com/neerajsahu14K2T/K2T/discussions)
 - 📧 **Business Inquiries**: ns9229900@gmail.com
-- 📱 **Feature Requests**: [Feature Request Template](https://github.com/yourusername/K2T/issues/new?template=feature_request.md)
+- 📱 **Feature Requests**: [Feature Request Template](https://github.com/neerajsahu14K2T/K2T/issues/new?template=feature_request.md)
 
 ---
 
@@ -400,9 +400,9 @@ MIT License - Feel free to use, modify, and distribute
 
 <p>⭐ **Star this repository if you found it helpful!** ⭐</p>
 
-<img src="https://img.shields.io/github/stars/yourusername/K2T?style=social" alt="GitHub stars">
-<img src="https://img.shields.io/github/forks/yourusername/K2T?style=social" alt="GitHub forks">
-<img src="https://img.shields.io/github/watchers/yourusername/K2T?style=social" alt="GitHub watchers">
+<img src="https://img.shields.io/github/stars/neerajsahu14K2T/K2T?style=social" alt="GitHub stars">
+<img src="https://img.shields.io/github/forks/neerajsahu14K2T/K2T?style=social" alt="GitHub forks">
+<img src="https://img.shields.io/github/watchers/neerajsahu14K2T?style=social" alt="GitHub watchers">
 
 <br><br>
 
