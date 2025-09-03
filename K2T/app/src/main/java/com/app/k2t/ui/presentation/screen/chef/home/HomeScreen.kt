@@ -241,7 +241,7 @@ fun TableOrderCard(
                         )
                     )
                 )
-                .padding(24.dp)
+                .padding(8.dp)
         ) {
             // Table header
             Row(

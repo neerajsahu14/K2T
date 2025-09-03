@@ -67,6 +67,7 @@ fun AcceptedOrderScreen(
     orderItemViewModel: OrderItemViewModel = koinViewModel()
 ) {
     val acceptedItems by orderItemViewModel.acceptedOrderItems.collectAsState()
+    val isLoading by orderItemViewModel.isLoading.collectAsState()
 
     // Group items by date first, then by table
     val groupedByDate = acceptedItems.groupBy { item ->
@@ -75,14 +76,19 @@ fun AcceptedOrderScreen(
         } ?: "Unknown Date"
     }.toSortedMap(compareByDescending { it })
 
-    Crossfade(
-        targetState = groupedByDate.isEmpty(),
-        animationSpec = tween(600),
-        label = "accepted_screen_crossfade"
-    ) { isEmpty ->
-        if (isEmpty) {
+    when {
+        isLoading && acceptedItems.isEmpty() -> {
+            Box(
+                modifier = modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator()
+            }
+        }
+        groupedByDate.isEmpty() -> {
             EmptyAcceptedOrdersScreen(modifier = modifier)
-        } else {
+        }
+        else -> {
             AcceptedOrdersListScreen(
                 modifier = modifier,
                 groupedByDate = groupedByDate,
