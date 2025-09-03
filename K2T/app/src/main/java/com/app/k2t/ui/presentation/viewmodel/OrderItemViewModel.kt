@@ -28,25 +28,34 @@ class OrderItemViewModel : ViewModel(), KoinComponent {
     private val _orderItemsByOrderId = MutableStateFlow<List<OrderItem>>(emptyList())
     val orderItemsByOrderId: MutableStateFlow<List<OrderItem>> = _orderItemsByOrderId
 
+    private val _isLoading = MutableStateFlow(false)
+    val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
+
+    private val _recentOrderItems = MutableStateFlow<List<OrderItem>>(emptyList())
+    val recentOrderItems: StateFlow<List<OrderItem>> = _recentOrderItems.asStateFlow()
+
     // Flow for pending order items, not assigned to any chef yet
-    val pendingOrderItems: StateFlow<List<OrderItem>> = allOrderItems.map { items ->
+    val pendingOrderItems: StateFlow<List<OrderItem>> = recentOrderItems.map { items ->
         items.filter { it.statusCode == OrderStatus.PENDING.code }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     // Flow for items accepted by the current chef
-    val acceptedOrderItems: StateFlow<List<OrderItem>> = allOrderItems.map { items ->
+    val acceptedOrderItems: StateFlow<List<OrderItem>> = recentOrderItems.map { items ->
         items.filter { it.chefId == userViewModel.userState.value?.id && (it.statusCode == OrderStatus.PREPARING.code || it.statusCode == OrderStatus.COMPLETED.code) }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
 
     init {
         getAllOrderItems()
+        getRecentOrderItems()
     }
 
     fun getAllOrderItems() {
         viewModelScope.launch {
+            _isLoading.value = true
             orderItemRepository.getAllOrderItems().collect { items ->
                 _allOrderItems.value = items
+                _isLoading.value = false
             }
         }
     }
@@ -107,4 +116,11 @@ class OrderItemViewModel : ViewModel(), KoinComponent {
         }
     }
 
+    fun getRecentOrderItems() {
+        viewModelScope.launch {
+            orderItemRepository.getRecentOrderItems().collect { items ->
+                _recentOrderItems.value = items
+            }
+        }
+    }
 }

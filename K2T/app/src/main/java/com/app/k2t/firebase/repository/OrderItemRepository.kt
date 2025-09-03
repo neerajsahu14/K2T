@@ -17,4 +17,5 @@ interface OrderItemRepository {
     suspend fun updateOrderItemWithOrderId(itemId: String, orderId: String): Task<Void>
     suspend fun getAllOrderItems() : Flow<List<OrderItem>>
     fun updateOrderItemWithChefId(itemId: String, chefId: String): Task<Void>
+    fun getRecentOrderItems(): Flow<List<OrderItem>>
 }
