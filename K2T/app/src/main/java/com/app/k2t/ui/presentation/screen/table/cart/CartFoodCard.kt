@@ -25,14 +25,7 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.app.k2t.R
 import com.app.k2t.local.model.FoodInCart // Assuming this is your cart item model
-import java.util.Locale
-
-// Colors from the design - ideally, these should be in your Theme.kt
-val DarkScreenBackground = Color(0xFF251C1A) // Very dark brown, almost black
-val DarkCardBackground = Color(0xFF3A2C2A) // Dark brown for cards
-val TextColorPrimary = Color(0xFFF5EFE6) // Off-white/Beige for text
-val AccentColorOrange = Color(0xFFE57905) // Orange for buttons, selections
-val DarkTextOnOrange = Color(0xFF251C1A) // For text on orange buttons
+import com.app.k2t.ui.theme.K2TTheme
 
 
 @SuppressLint("DefaultLocale")
@@ -44,13 +37,13 @@ fun CartFoodCard(
     onDelete: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Box(modifier = modifier.fillMaxWidth()) { // Outer Box to allow TopEnd alignment for delete
+    Box(modifier = modifier.fillMaxWidth()) {
         Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = 8.dp, bottom = 8.dp, start = 8.dp, end = 8.dp), // Adjust padding if delete icon overlaps
+                .padding(top = 8.dp, bottom = 8.dp, start = 8.dp, end = 8.dp),
             shape = RoundedCornerShape(16.dp),
-            colors = CardDefaults.cardColors(containerColor = DarkCardBackground),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
             elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
         ) {
             Row(
@@ -76,7 +69,7 @@ fun CartFoodCard(
                         style = MaterialTheme.typography.titleMedium.copy(
                             fontWeight = FontWeight.Bold,
                             fontSize = 16.sp,
-                            color = TextColorPrimary
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         ),
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
@@ -87,7 +80,7 @@ fun CartFoodCard(
                         text = "₹${String.format("%.2f", cartFood.unitPrice)}",
                         style = MaterialTheme.typography.bodySmall.copy(
                             fontSize = 13.sp,
-                            color = TextColorPrimary.copy(alpha = 0.7f)
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
                         )
                     )
                     Spacer(modifier = Modifier.height(8.dp))
@@ -105,7 +98,7 @@ fun CartFoodCard(
                     style = MaterialTheme.typography.titleMedium.copy(
                         fontWeight = FontWeight.Bold,
                         fontSize = 16.sp,
-                        color = TextColorPrimary
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 )
             }
@@ -116,13 +109,13 @@ fun CartFoodCard(
             modifier = Modifier
                 .align(Alignment.TopEnd)
                 .padding(top = 0.dp, end = 0.dp) // Fine-tune padding
-                .size(32.dp) // Increased size for easier tapping
-                .background(DarkCardBackground.copy(alpha = 0.7f), shape = CircleShape)
+                .size(32.dp)
+                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f), shape = CircleShape)
         ) {
             Icon(
                 Icons.Default.Close,
                 contentDescription = "Remove item",
-                tint = TextColorPrimary,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.size(18.dp)
             )
         }
@@ -147,7 +140,7 @@ private fun QuantitySelector(
         )
         Text(
             text = quantity.toString(),
-            style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold, color = TextColorPrimary),
+            style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurfaceVariant),
             modifier = Modifier.padding(horizontal = 12.dp) // Increased padding
         )
         QuantityButton(
@@ -168,24 +161,24 @@ private fun QuantityButton(
         modifier = modifier
             .size(28.dp) // Slightly larger buttons
             .clip(CircleShape)
-            .background(if (enabled) AccentColorOrange else AccentColorOrange.copy(alpha = 0.5f))
+            .background(if (enabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.primary.copy(alpha = 0.5f))
             .clickable(enabled = enabled, onClick = onClick),
         contentAlignment = Alignment.Center
     ) {
         Icon(
-            painter = painterResource(icon), // Use your own drawable resources
-            contentDescription = null, // Handled by parent
-            tint = if (enabled) DarkTextOnOrange else DarkTextOnOrange.copy(alpha = 0.7f),
+            painter = painterResource(icon),
+            contentDescription = null,
+            tint = if (enabled) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f),
             modifier = Modifier.size(18.dp)
         )
     }
 }
 
 
-@Preview(showBackground = true, backgroundColor = 0xFF251C1A)
+@Preview(showBackground = true, showSystemUi = true)
 @Composable
 private fun PreviewCartFoodCard() {
-    MaterialTheme {
+    K2TTheme(darkTheme = true) {
         CartFoodCard(
             cartFood = FoodInCart(
                 foodId = "f1",

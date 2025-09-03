@@ -1,7 +1,6 @@
 package com.app.k2t.ui.presentation.screen.table.home
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -9,24 +8,17 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.*
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import coil.compose.AsyncImage
 import com.app.k2t.firebase.model.Food
 import com.app.k2t.local.model.FoodInCart
 import com.app.k2t.ui.presentation.viewmodel.CartViewModel
@@ -44,8 +36,7 @@ fun CategoryFoodScreen(
     categoryViewModel: FoodCategoryViewModel = koinViewModel(),
     cartViewModel: CartViewModel = koinViewModel(),
     onBackClick: () -> Unit = {},
-    onFoodClick: (Food) -> Unit = {},
-    onCartClick: () -> Unit = {}
+    onFoodClick: (Food) -> Unit = {}
 ) {
     val foods by foodViewModel.foods.collectAsState()
     val isLoading by foodViewModel.isLoading.collectAsState()
@@ -58,9 +49,7 @@ fun CategoryFoodScreen(
     val categoryFoods = remember(foods, category) {
         if (category != null) {
             foods.filter { food ->
-                food.foodId in category.foodsIds &&
-                        food.valid == true &&
-                        food.availability == true
+                food.foodId in category.foodsIds && food.valid && food.availability == true
             }
         } else {
             emptyList()
@@ -84,103 +73,46 @@ fun CategoryFoodScreen(
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
     ) {
-        // Background decoration
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(
-                    brush = Brush.verticalGradient(
-                        colors = listOf(
-                            MaterialTheme.colorScheme.primary.copy(alpha = 0.03f),
-                            MaterialTheme.colorScheme.background
-                        )
-                    )
-                )
-        )
-
+        // Removed extra gradient overlay to match TableHomeScreen background
         Column(
             modifier = Modifier.fillMaxSize()
         ) {
-            // Custom App Bar
+            // Enhanced Top Bar with Divider
             Surface(
+                tonalElevation = 2.dp,
+                shadowElevation = 2.dp,
                 color = MaterialTheme.colorScheme.surface,
-                tonalElevation = 3.dp,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 12.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    // Back Button
-                    IconButton(
-                        onClick = onBackClick,
+                Box {
+                    Row(
                         modifier = Modifier
-                            .size(48.dp)
-                            .background(
-                                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
-                                shape = CircleShape
-                            )
+                            .fillMaxWidth()
+                            .height(56.dp)
+                            .padding(horizontal = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Icon(
-                            Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back",
-                            tint = MaterialTheme.colorScheme.primary
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.width(16.dp))
-
-                    // Title and item count
-                    Column(
-                        modifier = Modifier.weight(1f)
-                    ) {
-                        category?.name?.let {
-                            Text(
-                                text = it,
-                                style = MaterialTheme.typography.headlineSmall,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onSurface,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis
-                            )
-                        }
-                        Text(
-                            text = "${categoryFoods.size} items",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-
-                    // Cart button
-                    IconButton(
-                        onClick = onCartClick,
-                        modifier = Modifier
-                            .size(48.dp)
-                            .background(
-                                color = MaterialTheme.colorScheme.secondaryContainer,
-                                shape = CircleShape
-                            )
-                    ) {
-                        BadgedBox(
-                            badge = {
-                                if (cartItems.isNotEmpty()) {
-                                    Badge {
-                                        Text(
-                                            text = cartItems.sumOf { it.quantity ?: 0 }.toString(),
-                                            fontSize = 10.sp
-                                        )
-                                    }
-                                }
-                            }
+                        IconButton(
+                            onClick = onBackClick,
+                            modifier = Modifier.size(40.dp)
                         ) {
                             Icon(
-                                Icons.Default.ShoppingCart,
-                                contentDescription = "Cart",
-                                tint = MaterialTheme.colorScheme.onSecondaryContainer
+                                Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = "Back",
+                                tint = MaterialTheme.colorScheme.onSurface
                             )
                         }
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
+                            Text(
+                                text = category?.name ?: "Category",
+                                style = MaterialTheme.typography.titleLarge,
+                                color = MaterialTheme.colorScheme.onSurface,
+                                fontWeight = FontWeight.Bold,
+                                maxLines = 1
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(48.dp)) // To balance the back button
                     }
                 }
             }
@@ -327,7 +259,7 @@ fun CategoryFoodScreen(
                         modifier = Modifier.fillMaxSize()
                     ) {
                         // Category description if available
-                        if (!category.description.isNullOrEmpty()) {
+                        if (category.description.isNotEmpty()) {
                             Card(
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -336,13 +268,11 @@ fun CategoryFoodScreen(
                                     containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.8f)
                                 ),
                                 shape = RoundedCornerShape(16.dp),
-                                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
                             ) {
                                 Text(
-                                    text = category.description,
+                                    text = category.description ?: "",
                                     modifier = Modifier.padding(16.dp),
                                     style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     textAlign = TextAlign.Center
                                 )
                             }
@@ -360,7 +290,7 @@ fun CategoryFoodScreen(
                             verticalArrangement = Arrangement.spacedBy(16.dp)
                         ) {
                             items(categoryFoods, key = { it.foodId ?: "" }) { food ->
-                                EnhancedMenuItemCard(
+                                MenuItemCard(
                                     food = food,
                                     onCardClick = { onFoodClick(food) },
                                     onAddToCart = { insertInCart(food) },
@@ -375,119 +305,7 @@ fun CategoryFoodScreen(
     }
 }
 
-@Composable
-private fun EnhancedMenuItemCard(
-    food: Food,
-    onCardClick: () -> Unit,
-    onAddToCart: () -> Unit,
-    isItemInCart: Boolean,
-    modifier: Modifier = Modifier
-) {
-    Card(
-        modifier = modifier
-            .fillMaxWidth()
-            .clickable { onCardClick() },
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
-        ),
-        shape = RoundedCornerShape(16.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            // Food image
-            Box(
-                modifier = Modifier
-                    .size(80.dp)
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(
-                        color = MaterialTheme.colorScheme.surfaceVariant,
-                        shape = RoundedCornerShape(12.dp)
-                    ),
-                contentAlignment = Alignment.Center
-            ) {
-                if (!food.imageUrl.isNullOrEmpty()) {
-                    AsyncImage(
-                        model = food.imageUrl,
-                        contentDescription = food.name,
-                        modifier = Modifier.fillMaxSize(),
-                        contentScale = ContentScale.Crop
-                    )
-                } else {
-                    Icon(
-                        painter = painterResource(R.drawable.restaurant_menu),
-                        contentDescription = "Food image",
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            }
 
-            Spacer(modifier = Modifier.width(16.dp))
-
-            // Food details
-            Column(
-                modifier = Modifier.weight(1f)
-            ) {
-                Text(
-                    text = food.name ?: "Unknown Food",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-
-                Spacer(modifier = Modifier.height(4.dp))
-
-                Text(
-                    text = food.details?.description ?: "",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                Text(
-                    text = "$${food.price}",
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary
-                )
-            }
-
-            // Add to cart button
-            IconButton(
-                onClick = onAddToCart,
-                modifier = Modifier
-                    .size(48.dp)
-                    .background(
-                        color = if (isItemInCart) {
-                            MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
-                        } else {
-                            MaterialTheme.colorScheme.primary
-                        },
-                        shape = CircleShape
-                    )
-            ) {
-                Icon(
-                    imageVector = if (isItemInCart) Icons.Default.Check else Icons.Default.Add,
-                    contentDescription = "Add to cart",
-                    tint = if (isItemInCart) {
-                        MaterialTheme.colorScheme.primary
-                    } else {
-                        MaterialTheme.colorScheme.onPrimary
-                    }
-                )
-            }
-        }
-    }
-}
 
 @Preview(showBackground = true)
 @Composable

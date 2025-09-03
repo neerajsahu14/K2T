@@ -1,6 +1,5 @@
 package com.app.k2t.ui.presentation.screen.table
 
-import androidx.activity.enableEdgeToEdge
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
@@ -20,15 +19,11 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
@@ -38,13 +33,11 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.app.k2t.firebase.model.Food
 import com.app.k2t.ui.presentation.screen.table.home.*
-import com.app.k2t.ui.presentation.viewmodel.FoodViewModel
 import com.app.k2t.R
 import com.app.k2t.ui.presentation.screen.table.cart.CartScreen
 import com.app.k2t.ui.presentation.screen.table.order.OrdersScreen
 import com.app.k2t.ui.presentation.viewmodel.CartViewModel
 import com.app.k2t.ui.theme.K2TTheme
-import com.google.android.material.tabs.TabLayout
 import org.koin.androidx.compose.koinViewModel
 
 // TableNavigation routes
@@ -59,11 +52,6 @@ sealed class TableRoute(val route: String) {
     object CategoryFoodScreen : TableRoute("category_food_screen")
 }
 
-// Cart item data class
-data class CartItem(
-    val food: Food,
-    val quantity: Int
-)
 
 data class NavigationItem(
     val route: String,
@@ -304,6 +292,10 @@ fun TableNavigation(
                     containerColor = MaterialTheme.colorScheme.primary,
                     contentColor = MaterialTheme.colorScheme.onPrimary
                 ) {
+                    Icon(
+                        Icons.Default.ShoppingCart,
+                        contentDescription = "Cart"
+                    )
                     Badge(
                         containerColor = MaterialTheme.colorScheme.error,
                         modifier = Modifier.offset(x = 8.dp, y = (-8).dp)
@@ -314,10 +306,6 @@ fun TableNavigation(
                             fontSize = 12.sp
                         )
                     }
-                    Icon(
-                        Icons.Default.ShoppingCart,
-                        contentDescription = "Cart"
-                    )
                 }
             }
         }
@@ -472,13 +460,6 @@ fun TableNavigation(
                     onFoodClick = { food ->
                         selectedFood = food
                         navController.navigate(TableRoute.FoodDetails.route)
-                    },
-                    onCartClick = {
-                        navController.navigate(TableRoute.Cart.route) {
-                            popUpTo(navController.graph.findStartDestination().id) {
-                                saveState = true
-                            }
-                        }
                     },
                 )
             }
