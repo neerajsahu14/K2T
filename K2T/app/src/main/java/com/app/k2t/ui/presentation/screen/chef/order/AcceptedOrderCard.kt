@@ -16,9 +16,6 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -43,7 +40,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 @Composable
-fun AcceptedOrderCart(
+fun AcceptedOrderCard(
     modifier: Modifier = Modifier,
     item: OrderItem,
     onItemCompleted: () -> Unit
@@ -94,9 +91,6 @@ fun AcceptedOrderCart(
             ) {
                 isPressed = !isPressed
             },
-        elevation = CardDefaults.cardElevation(
-            defaultElevation = if (isCompleted) 4.dp else 8.dp
-        ),
         colors = CardDefaults.cardColors(
             containerColor = containerColor
         ),

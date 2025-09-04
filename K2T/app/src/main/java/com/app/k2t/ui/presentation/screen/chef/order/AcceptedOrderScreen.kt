@@ -1,5 +1,4 @@
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.Spring
@@ -26,7 +25,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -52,7 +50,7 @@ import androidx.compose.ui.unit.sp
 import com.app.k2t.R
 import com.app.k2t.firebase.model.OrderItem
 import com.app.k2t.firebase.utils.OrderStatus
-import com.app.k2t.ui.presentation.screen.chef.order.AcceptedOrderCart
+import com.app.k2t.ui.presentation.screen.chef.order.AcceptedOrderCard
 import com.app.k2t.ui.presentation.viewmodel.OrderItemViewModel
 import org.koin.androidx.compose.koinViewModel
 import java.text.SimpleDateFormat
@@ -383,7 +381,7 @@ fun TableSection(
             // Order items
             sortedItems.forEach { item ->
                 item.itemId?.let { itemId ->
-                    AcceptedOrderCart(
+                    AcceptedOrderCard(
                         item = item,
                         onItemCompleted = {
                             orderItemViewModel.updateOrderItemStatus(itemId, OrderStatus.COMPLETED.code)
