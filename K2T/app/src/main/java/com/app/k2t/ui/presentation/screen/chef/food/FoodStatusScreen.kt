@@ -1,5 +1,6 @@
 package com.app.k2t.ui.presentation.screen.chef.food
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -32,34 +33,36 @@ fun FoodStatusScreen(
     val foods by foodViewModel.foods.collectAsState()
     val isLoading by foodViewModel.isLoading.collectAsState()
     val paddingValues = PaddingValues()
-        Box(
-            modifier = modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-        ) {
-            if (isLoading && foods.isEmpty()) {
-                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
-            } else {
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    items(foods, key = { it.foodId ?: "" }) { food ->
-                        food.foodId?.let {
-                            FoodStatusCard(
-                                food = food,
-                                onAvailabilityChange = { newAvailability ->
-                                    foodViewModel.updateFood(
-                                        it,
-                                        food.copy(availability = newAvailability)
-                                    )
-                                }
-                            )
-                        }
+
+    Box(
+        modifier = modifier
+            .fillMaxSize()
+            .padding(paddingValues)
+    ) {
+        if (isLoading && foods.isEmpty()) {
+            CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+        } else {
+            LazyColumn(
+                modifier = Modifier.fillMaxSize()
+                    .background(color = MaterialTheme.colorScheme.surfaceContainerLow),
+                contentPadding = PaddingValues(16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                items(foods, key = { it.foodId ?: "" }) { food ->
+                    food.foodId?.let {
+                        FoodStatusCard(
+                            food = food,
+                            onAvailabilityChange = { newAvailability ->
+                                foodViewModel.updateFood(
+                                    it,
+                                    food.copy(availability = newAvailability)
+                                )
+                            }
+                        )
                     }
                 }
             }
         }
+    }
 
 }

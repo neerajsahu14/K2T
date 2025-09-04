@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -39,9 +40,9 @@ class OrderItemViewModel : ViewModel(), KoinComponent {
         items.filter { it.statusCode == OrderStatus.PENDING.code }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    // Flow for items accepted by the current chef
-    val acceptedOrderItems: StateFlow<List<OrderItem>> = recentOrderItems.map { items ->
-        items.filter { it.chefId == userViewModel.userState.value?.id && (it.statusCode == OrderStatus.PREPARING.code || it.statusCode == OrderStatus.COMPLETED.code) }
+    // Flow for items accepted by the current chef (combine user and items)
+    val acceptedOrderItems: StateFlow<List<OrderItem>> = combine(recentOrderItems, userViewModel.userState) { items, user ->
+        items.filter { it.chefId == user?.id && (it.statusCode == OrderStatus.PREPARING.code || it.statusCode == OrderStatus.COMPLETED.code) }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
 
