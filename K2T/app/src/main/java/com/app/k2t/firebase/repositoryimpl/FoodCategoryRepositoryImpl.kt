@@ -6,6 +6,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.tasks.await
 
 /**
@@ -17,7 +18,27 @@ class FoodCategoryRepositoryImpl : FoodCategoryRepository {
     private val firestore = FirebaseFirestore.getInstance()
     private val collection = firestore.collection("categories")
 
+    /**
+     * Returns a flow of all valid food categories (not soft deleted)
+     */
     override fun getAllFoodCategories(): Flow<List<FoodCategory>> = callbackFlow {
+        val listener = collection
+            .whereEqualTo("valid", true)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    close(error)
+                    return@addSnapshotListener
+                }
+                val categories = snapshot?.toObjects(FoodCategory::class.java) ?: emptyList()
+                trySend(categories)
+            }
+        awaitClose { listener.remove() }
+    }
+
+    /**
+     * Returns a flow of all food categories including soft deleted ones
+     */
+    fun getAllFoodCategoriesIncludingDeleted(): Flow<List<FoodCategory>> = callbackFlow {
         val listener = collection.addSnapshotListener { snapshot, error ->
             if (error != null) {
                 close(error)
@@ -30,7 +51,9 @@ class FoodCategoryRepositoryImpl : FoodCategoryRepository {
     }
 
     override suspend fun createFoodCategory(foodCategory: FoodCategory) {
-        collection.document(foodCategory.id).set(foodCategory).await()
+        // Ensure new categories are valid by default
+        val categoryToSave = foodCategory.copy(valid = true)
+        collection.document(categoryToSave.id).set(categoryToSave).await()
     }
 
     override suspend fun getFoodCategoryById(id: String): FoodCategory? {
@@ -42,7 +65,25 @@ class FoodCategoryRepositoryImpl : FoodCategoryRepository {
         collection.document(foodCategory.id).set(foodCategory).await()
     }
 
+    /**
+     * Soft deletes a food category by setting valid=false
+     */
     override suspend fun deleteFoodCategory(id: String) {
+        // Soft delete - set valid to false
+        collection.document(id).update("valid", false).await()
+    }
+
+    /**
+     * Permanently removes a food category from Firestore
+     */
+    override suspend fun permanentlyDeleteFoodCategory(id: String) {
         collection.document(id).delete().await()
+    }
+
+    /**
+     * Restores a soft-deleted food category
+     */
+    override suspend fun restoreFoodCategory(id: String) {
+        collection.document(id).update("valid", true).await()
     }
 }

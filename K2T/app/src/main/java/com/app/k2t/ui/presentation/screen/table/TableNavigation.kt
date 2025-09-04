@@ -6,6 +6,8 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
@@ -16,27 +18,27 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.app.k2t.firebase.model.Food
 import com.app.k2t.ui.presentation.screen.table.home.*
-import com.app.k2t.ui.presentation.viewmodel.FoodViewModel
 import com.app.k2t.R
 import com.app.k2t.ui.presentation.screen.table.cart.CartScreen
 import com.app.k2t.ui.presentation.screen.table.order.OrdersScreen
+import com.app.k2t.ui.presentation.viewmodel.CartViewModel
 import com.app.k2t.ui.theme.K2TTheme
+import org.koin.androidx.compose.koinViewModel
 
 // TableNavigation routes
 sealed class TableRoute(val route: String) {
@@ -45,13 +47,11 @@ sealed class TableRoute(val route: String) {
     object Cart : TableRoute("cart")
     object Orders : TableRoute("orders")
     object Profile : TableRoute("profile")
+    object CategoryScreen : TableRoute("category_screen")
+
+    object CategoryFoodScreen : TableRoute("category_food_screen")
 }
 
-// Cart item data class
-data class CartItem(
-    val food: Food,
-    val quantity: Int
-)
 
 data class NavigationItem(
     val route: String,
@@ -60,8 +60,6 @@ data class NavigationItem(
     val badgeCount: Int?
 )
 
-// Commented out old OrdersScreen
-// ...existing code...
 
 @Composable
 fun ProfileScreen(
@@ -158,16 +156,16 @@ fun ProfileScreenPreview() {
 @Composable
 fun TableNavigation(
     modifier: Modifier = Modifier,
-    foodViewModel: FoodViewModel = viewModel(),
+    cartViewModel: CartViewModel = koinViewModel()
 ) {
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
     var selectedFood by remember { mutableStateOf<Food?>(null) }
-    var cartItems by remember { mutableStateOf<List<CartItem>>(emptyList()) }
+    val cartItems by cartViewModel.allFoodInCart.collectAsState()
 
-    val cartItemCount = cartItems.sumOf { it.quantity }
-    val cartTotal = cartItems.sumOf { (it.food.price ?: 0.0) * it.quantity }
+    val cartItemCount = cartItems.sumOf { it.quantity ?: 0 }
+
 
     // Show bottom bar only on main screens, not on detail screens
     val showBottomBar = remember(currentDestination) {
@@ -175,6 +173,7 @@ fun TableNavigation(
     }
 
     Scaffold(
+        modifier = Modifier.fillMaxSize(),
         bottomBar = {
             AnimatedVisibility(
                 visible = showBottomBar,
@@ -182,6 +181,7 @@ fun TableNavigation(
                 exit = fadeOut() + shrinkVertically()
             ) {
                 NavigationBar(
+                    modifier = Modifier.fillMaxWidth(),
                     containerColor = MaterialTheme.colorScheme.surface,
                     contentColor = MaterialTheme.colorScheme.onSurface,
                     tonalElevation = 8.dp,
@@ -215,7 +215,7 @@ fun TableNavigation(
 
                     navigationItems.forEach { item ->
                         val selected = currentDestination?.hierarchy?.any { it.route == item.route } == true
-
+                        val scale = if (selected) 1.15f else 1.0f
                         NavigationBarItem(
                             icon = {
                                 BadgedBox(
@@ -230,19 +230,27 @@ fun TableNavigation(
                                     Icon(
                                         painterResource(id = item.icon),
                                         contentDescription = item.label,
-                                        modifier = Modifier.size(24.dp)
+                                        modifier = Modifier
+                                            .size(24.dp)
+                                            .graphicsLayer {
+                                                scaleX = scale
+                                                scaleY = scale
+                                            }
                                     )
                                 }
                             },
                             label = {
                                 Text(
                                     item.label,
-                                    style = MaterialTheme.typography.labelMedium
+                                    style = MaterialTheme.typography.labelSmall,
+                                    modifier = Modifier.graphicsLayer {
+                                        alpha = if (selected) 1f else 0.7f
+                                    }
                                 )
                             },
                             selected = selected,
                             colors = NavigationBarItemDefaults.colors(
-                                selectedIconColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                                selectedIconColor = MaterialTheme.colorScheme.primary,
                                 selectedTextColor = MaterialTheme.colorScheme.primary,
                                 indicatorColor = MaterialTheme.colorScheme.primaryContainer,
                                 unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -250,14 +258,10 @@ fun TableNavigation(
                             ),
                             onClick = {
                                 navController.navigate(item.route) {
-                                    // Pop up to the start destination of the graph to
-                                    // avoid building up a large stack of destinations
                                     popUpTo(navController.graph.findStartDestination().id) {
                                         saveState = true
                                     }
-                                    // Avoid multiple copies of the same destination
                                     launchSingleTop = true
-                                    // Restore state when navigating back to a previously selected item
                                     restoreState = true
                                 }
                             }
@@ -265,12 +269,54 @@ fun TableNavigation(
                     }
                 }
             }
+        },
+        floatingActionButton = {
+            AnimatedVisibility(
+                visible = cartItems.isNotEmpty() && navController.currentDestination?.route != TableRoute.Cart.route,
+                enter = fadeIn() + scaleIn(initialScale = 0.5f),
+                exit = fadeOut() + scaleOut(targetScale = 0.5f),
+                modifier = Modifier
+            ) {
+                FloatingActionButton(
+                        onClick = {
+                            navController.navigate(TableRoute.Cart.route) {
+                                popUpTo(navController.graph.findStartDestination().id) {
+                                    saveState = true
+                                }
+                                // Avoid multiple copies of the same destination
+                                launchSingleTop = true
+                                // Restore state when navigating back to a previously selected item
+                                restoreState = true
+                            }
+                        },
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary
+                ) {
+                    Icon(
+                        Icons.Default.ShoppingCart,
+                        contentDescription = "Cart"
+                    )
+                    Badge(
+                        containerColor = MaterialTheme.colorScheme.error,
+                        modifier = Modifier.offset(x = 8.dp, y = (-8).dp)
+                    ) {
+                        Text(
+                            text = cartItems.sumOf { it.quantity ?: 0 }.toString(),
+                            color = MaterialTheme.colorScheme.onError,
+                            fontSize = 12.sp
+                        )
+                    }
+                }
+            }
         }
+
     ) { paddingValues ->
         NavHost(
             navController = navController,
             startDestination = TableRoute.Menu.route,
-            modifier = Modifier.padding(paddingValues)
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
         ) {
             composable(
                 TableRoute.Menu.route,
@@ -282,13 +328,23 @@ fun TableNavigation(
                 }
             ) {
                 TableHomeScreen(
-                    foodViewModel = foodViewModel,
                     onFoodClick = { food ->
                         selectedFood = food
                         navController.navigate(TableRoute.FoodDetails.route)
                     },
                     onCartClick = {
-                        navController.navigate(TableRoute.Cart.route){
+                        navController.navigate(TableRoute.Cart.route) {
+                            popUpTo(navController.graph.findStartDestination().id) {
+                                saveState = true
+                            }
+                            // Avoid multiple copies of the same destination
+                            launchSingleTop = true
+                            // Restore state when navigating back to a previously selected item
+                            restoreState = true
+                        }
+                    },
+                    onCategoryClick = {
+                        navController.navigate(TableRoute.CategoryScreen.route) {
                             popUpTo(navController.graph.findStartDestination().id) {
                                 saveState = true
                             }
@@ -321,24 +377,6 @@ fun TableNavigation(
                         food = food,
                         onBackClick = {
                             navController.navigateUp()
-                        },
-                        onAddToCart = { quantity ->
-                            // Add to cart logic
-                            val existingItemIndex = cartItems.indexOfFirst { it.food.foodId == food.foodId }
-                            cartItems = if (existingItemIndex >= 0) {
-                                cartItems.toMutableList().apply {
-                                    this[existingItemIndex] = this[existingItemIndex].copy(
-                                        quantity = this[existingItemIndex].quantity + quantity
-                                    )
-                                }
-                            } else {
-                                cartItems + CartItem(food, quantity)
-                            }
-
-                            // Navigate to cart with animation
-                            navController.navigate(TableRoute.Cart.route) {
-                                popUpTo(TableRoute.Menu.route)
-                            }
                         }
                     )
                 }
@@ -359,10 +397,6 @@ fun TableNavigation(
                             popUpTo(navController.graph.findStartDestination().id) {
                                 saveState = true
                             }
-                            // Avoid multiple copies of the same destination
-                            launchSingleTop = true
-                            // Restore state when navigating back to a previously selected item
-                            restoreState = true
                         }
                     }
                 )
@@ -391,6 +425,42 @@ fun TableNavigation(
             ) {
                 ProfileScreen(
                     tableNumber = "Table T1"
+                )
+            }
+
+            composable(TableRoute.CategoryScreen.route,
+                    enterTransition = {
+                        fadeIn(animationSpec = tween(300))
+                    },
+                    exitTransition = {
+                        fadeOut(animationSpec = tween(300))
+                    }
+                ) {
+                CategoryScreen(
+                    onBackClick = {
+                        navController.navigateUp()
+                    },
+                    onCategoryClick = { categoryId ->
+
+                        navController.navigate("CategoryFoodScreen/$categoryId")
+                    },
+                )
+
+            }
+            composable(
+                route = "CategoryFoodScreen/{categoryId}",
+                arguments = listOf(
+                    navArgument("categoryId") { nullable = false }
+                )
+            ) { backStackEntry ->
+                val categoryId = backStackEntry.arguments?.getString("categoryId") ?: ""
+                CategoryFoodScreen(
+                    categoryId = categoryId,
+                    onBackClick = { navController.popBackStack() },
+                    onFoodClick = { food ->
+                        selectedFood = food
+                        navController.navigate(TableRoute.FoodDetails.route)
+                    },
                 )
             }
         }

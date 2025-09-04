@@ -342,36 +342,6 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-
-// --- Composable Helper Functions ---
-@Composable
-fun AuthNavigation(modifier: Modifier = Modifier) {
-    val navController = rememberNavController()
-    NavHost(
-        navController = navController,
-        startDestination = "login",
-        modifier = modifier
-    ) {
-        composable("login") {
-            LoginScreen(
-                navController = navController
-            )
-        }
-        composable("signup") {
-            UserRegisterScreen(
-                navController = navController,
-            )
-        }
-    }
-}
-
-@Composable
-fun LoadingIndicator(modifier: Modifier = Modifier) {
-    Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        CircularProgressIndicator()
-    }
-}
-
 @Composable
 fun NetworkErrorScreen(modifier: Modifier = Modifier) {
     Box(

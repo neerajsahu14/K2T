@@ -1,24 +1,20 @@
 package com.app.k2t.ui.presentation.screen.table.cart
 
 import android.annotation.SuppressLint
-import androidx.compose.animation.*
-import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.scale
-import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -28,399 +24,173 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.app.k2t.R
-import com.app.k2t.local.model.FoodInCart
-import java.util.Locale
+import com.app.k2t.local.model.FoodInCart // Assuming this is your cart item model
+import com.app.k2t.ui.theme.K2TTheme
+
 
 @SuppressLint("DefaultLocale")
 @Composable
 fun CartFoodCard(
     cartFood: FoodInCart,
-    onIncrease: () -> Unit,
-    onDecrease: () -> Unit,
-    onDelete: () -> Unit,
+    onIncrease: (String) -> Unit,
+    onDecrease: (String) -> Unit,
+    onDelete: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    var isPressed by remember { mutableStateOf(false) }
-    var deletePressed by remember { mutableStateOf(false) }
-    var increasePressed by remember { mutableStateOf(false) }
-    var decreasePressed by remember { mutableStateOf(false) }
-
-    val cardScale by animateFloatAsState(
-        targetValue = if (isPressed) 0.98f else 1f,
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioMediumBouncy,
-            stiffness = Spring.StiffnessLow
-        )
-    )
-
-    val deleteScale by animateFloatAsState(
-        targetValue = if (deletePressed) 0.9f else 1f,
-        animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy)
-    )
-
-    val increaseScale by animateFloatAsState(
-        targetValue = if (increasePressed) 0.85f else 1f,
-        animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy)
-    )
-
-    val decreaseScale by animateFloatAsState(
-        targetValue = if (decreasePressed) 0.85f else 1f,
-        animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy)
-    )
-
-    Card(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(vertical = 6.dp, horizontal = 8.dp)
-            .shadow(
-                elevation = 12.dp,
-                shape = RoundedCornerShape(20.dp),
-                ambientColor = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.25f),
-                spotColor = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.25f)
-            )
-            .scale(cardScale),
-        shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = Color.Transparent
-        )
-    ) {
-        Box(
+    Box(modifier = modifier.fillMaxWidth()) {
+        Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(
-                    brush = Brush.verticalGradient(
-                        colors = listOf(
-                            MaterialTheme.colorScheme.surfaceContainer,
-                            MaterialTheme.colorScheme.surface
-                        )
-                    )
-                )
+                .padding(top = 8.dp, bottom = 8.dp, start = 8.dp, end = 8.dp),
+            shape = RoundedCornerShape(16.dp),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
         ) {
-            // Subtle accent line
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(2.dp)
-                    .background(
-                        brush = Brush.horizontalGradient(
-                            colors = listOf(
-                                MaterialTheme.colorScheme.primary.copy(alpha = 0.8f),
-                                MaterialTheme.colorScheme.secondary.copy(alpha = 0.6f),
-                                MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)
-                            )
-                        )
-                    )
-                    .align(Alignment.TopCenter)
-            )
-
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(16.dp),
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Enhanced food image with shimmer effect
-                cartFood.imageUrl?.let { imageUrl ->
-                    Surface(
-                        modifier = Modifier
-                            .size(85.dp)
-                            .clip(RoundedCornerShape(12.dp))
-                            .shadow(
-                                elevation = 8.dp,
-                                shape = RoundedCornerShape(12.dp)
-                            ),
-                        tonalElevation = 2.dp,
-                        color = MaterialTheme.colorScheme.surfaceContainerHigh
-                    ) {
-                        AsyncImage(
-                            model = imageUrl,
-                            contentDescription = cartFood.foodName,
-                            contentScale = ContentScale.Crop,
-                            modifier = Modifier.fillMaxSize()
-                        )
-                    }
-                    Spacer(modifier = Modifier.width(16.dp))
-                }
+                AsyncImage(
+                    model = cartFood.imageUrl,
+                    contentDescription = cartFood.foodName,
+                    modifier = Modifier
+                        .size(64.dp)
+                        .clip(RoundedCornerShape(12.dp)),
+                    contentScale = ContentScale.Crop
+                )
 
-                // Enhanced food information
-                Column(
-                    modifier = Modifier.weight(1f)
-                ) {
+                Spacer(modifier = Modifier.width(16.dp))
+
+                Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = cartFood.foodName,
                         style = MaterialTheme.typography.titleMedium.copy(
-                            fontSize = 18.sp,
-                            letterSpacing = 0.5.sp
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 16.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         ),
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
-
-                    Spacer(modifier = Modifier.height(6.dp))
-
-                    // Unit price with enhanced styling
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .background(
-                                    MaterialTheme.colorScheme.surfaceContainerHigh,
-                                    RoundedCornerShape(6.dp)
-                                )
-                                .padding(horizontal = 8.dp, vertical = 2.dp)
-                        ) {
-                            Text(
-                                text = "Unit",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                fontSize = 10.sp
-                            )
-                        }
-                        Spacer(modifier = Modifier.width(6.dp))
-                        Text(
-                            text = "₹${String.format(Locale.getDefault(), "%.2f", cartFood.unitPrice ?: 0.0)}",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            fontWeight = FontWeight.Medium
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        // Assuming unitPrice is the price for one item
+                        text = "₹${String.format("%.2f", cartFood.unitPrice)}",
+                        style = MaterialTheme.typography.bodySmall.copy(
+                            fontSize = 13.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
                         )
-                    }
-
+                    )
                     Spacer(modifier = Modifier.height(8.dp))
-
-                    // Enhanced total price
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = "Total",
-                            style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            fontWeight = FontWeight.Medium
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            text = "₹${String.format(Locale.getDefault(), "%.2f", cartFood.totalPrice ?: 0.0)}",
-                            style = MaterialTheme.typography.titleMedium.copy(
-                                fontSize = 18.sp,
-                                letterSpacing = 0.5.sp
-                            ),
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.primary,
-                            maxLines = 1 // Ensure the total price stays on a single line
-                        )
-                    }
+                    QuantitySelector(
+                        quantity = cartFood.quantity ?: 1,
+                        onIncrease = { onIncrease(cartFood.foodId) },
+                        onDecrease = { onDecrease(cartFood.foodId) }
+                    )
                 }
 
-                // Enhanced quantity controls
-                Column(
-                    horizontalAlignment = Alignment.End
-                ) {
-                    // Enhanced delete button
-                    Surface(
-                        onClick = {
-                            deletePressed = true
-                            onDelete()
-                        },
-                        modifier = Modifier
-                            .size(40.dp)
-                            .scale(deleteScale),
-                        shape = RoundedCornerShape(12.dp),
-                        color = MaterialTheme.colorScheme.surfaceContainerHigh,
-                        shadowElevation = 4.dp
-                    ) {
-                        Box(
-                            contentAlignment = Alignment.Center,
-                            modifier = Modifier
-                                .background(
-                                    brush = Brush.radialGradient(
-                                        colors = listOf(
-                                            MaterialTheme.colorScheme.error.copy(alpha = 0.2f),
-                                            Color.Transparent
-                                        )
-                                    )
-                                )
-                        ) {
-                            Icon(
-                                imageVector = Icons.Filled.Delete,
-                                contentDescription = "Delete",
-                                modifier = Modifier.size(22.dp),
-                                tint = MaterialTheme.colorScheme.error
-                            )
-                        }
-                    }
+                Spacer(modifier = Modifier.width(16.dp))
 
-                    Spacer(modifier = Modifier.height(12.dp))
-
-                    // Enhanced quantity adjustment surface
-                    Surface(
-                        shape = RoundedCornerShape(16.dp),
-                        color = MaterialTheme.colorScheme.surfaceContainerHigh,
-                        shadowElevation = 6.dp,
-                        modifier = Modifier.background(
-                            brush = Brush.linearGradient(
-                                colors = listOf(
-                                    MaterialTheme.colorScheme.surfaceContainerHigh,
-                                    MaterialTheme.colorScheme.surfaceContainer
-                                )
-                            ),
-                            shape = RoundedCornerShape(16.dp)
-                        )
-                    ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp)
-                        ) {
-                            // Decrease button
-                            Surface(
-                                onClick = {
-                                    decreasePressed = true
-                                    onDecrease()
-                                },
-                                modifier = Modifier
-                                    .size(36.dp)
-                                    .scale(decreaseScale),
-                                shape = RoundedCornerShape(12.dp),
-                                color = if ((cartFood.quantity ?: 1) > 1)
-                                    MaterialTheme.colorScheme.surfaceContainerHighest
-                                else
-                                    MaterialTheme.colorScheme.surfaceContainer
-                            ) {
-                                Box(
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Icon(
-                                        painter = painterResource(id = R.drawable.baseline_remove_24),
-                                        contentDescription = "Decrease",
-                                        modifier = Modifier.size(18.dp),
-                                        tint = if ((cartFood.quantity ?: 1) > 1)
-                                            MaterialTheme.colorScheme.primary
-                                        else
-                                            MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
-                                    )
-                                }
-                            }
-
-                            // Quantity display with enhanced styling
-                            Box(
-                                modifier = Modifier
-                                    .background(
-                                        MaterialTheme.colorScheme.surfaceContainerHighest,
-                                        RoundedCornerShape(8.dp)
-                                    )
-                                    .padding(horizontal = 8.dp, vertical = 4.dp),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Text(
-                                    text = (cartFood.quantity ?: 1).toString(),
-                                    style = MaterialTheme.typography.titleMedium.copy(
-                                        fontSize = 16.sp,
-                                        letterSpacing = 0.5.sp
-                                    ),
-                                    fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.onSurface
-                                )
-                            }
-
-                            // Increase button
-                            Surface(
-                                onClick = {
-                                    increasePressed = true
-                                    onIncrease()
-                                },
-                                modifier = Modifier
-                                    .size(36.dp)
-                                    .scale(increaseScale),
-                                shape = RoundedCornerShape(12.dp),
-                                color = MaterialTheme.colorScheme.surfaceContainerHighest
-                            ) {
-                                Box(
-                                    contentAlignment = Alignment.Center,
-                                    modifier = Modifier.background(
-                                        brush = Brush.radialGradient(
-                                            colors = listOf(
-                                                MaterialTheme.colorScheme.primary.copy(alpha = 0.3f),
-                                                Color.Transparent
-                                            )
-                                        )
-                                    )
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Filled.Add,
-                                        contentDescription = "Increase",
-                                        modifier = Modifier.size(18.dp),
-                                        tint = MaterialTheme.colorScheme.primary
-                                    )
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            // Animated bottom accent
-            androidx.compose.animation.AnimatedVisibility(
-                visible = (cartFood.quantity ?: 0) > 0, // Only show if item is in cart
-                enter = fadeIn(animationSpec = tween(1000)),
-                modifier = Modifier.align(Alignment.BottomCenter)
-            ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(1.dp)
-                        .background(
-                            brush = Brush.horizontalGradient(
-                                colors = listOf(
-                                    Color.Transparent,
-                                    MaterialTheme.colorScheme.primary.copy(alpha = 0.3f),
-                                    Color.Transparent
-                                )
-                            )
-                        )
+                Text(
+                    text = "₹${String.format("%.2f", cartFood.totalPrice)}",
+                    style = MaterialTheme.typography.titleMedium.copy(
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 16.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 )
             }
         }
-    }
-
-    // Reset button press states
-    LaunchedEffect(deletePressed) {
-        if (deletePressed) {
-            kotlinx.coroutines.delay(100)
-            deletePressed = false
-        }
-    }
-
-    LaunchedEffect(increasePressed) {
-        if (increasePressed) {
-            kotlinx.coroutines.delay(100)
-            increasePressed = false
-        }
-    }
-
-    LaunchedEffect(decreasePressed) {
-        if (decreasePressed) {
-            kotlinx.coroutines.delay(100)
-            decreasePressed = false
+        // Delete Button - aligned to TopEnd of the Box
+        IconButton(
+            onClick = { onDelete(cartFood.foodId) },
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .padding(top = 0.dp, end = 0.dp) // Fine-tune padding
+                .size(32.dp)
+                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f), shape = CircleShape)
+        ) {
+            Icon(
+                Icons.Default.Close,
+                contentDescription = "Remove item",
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(18.dp)
+            )
         }
     }
 }
 
-@Preview(name = "CartFoodCard")
+@Composable
+private fun QuantitySelector(
+    quantity: Int,
+    onIncrease: () -> Unit,
+    onDecrease: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = modifier
+    ) {
+        QuantityButton(
+            icon = R.drawable.baseline_remove_24,
+            onClick = onDecrease,
+            enabled = quantity > 1 // Decrease is disabled if quantity is 1 or less
+        )
+        Text(
+            text = quantity.toString(),
+            style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurfaceVariant),
+            modifier = Modifier.padding(horizontal = 12.dp) // Increased padding
+        )
+        QuantityButton(
+            icon = R.drawable.add,
+            onClick = onIncrease
+        )
+    }
+}
+
+@Composable
+private fun QuantityButton(
+    icon: Int,
+    onClick: () -> Unit,
+    enabled: Boolean = true,
+    modifier: Modifier = Modifier
+) {
+    Box(
+        modifier = modifier
+            .size(28.dp) // Slightly larger buttons
+            .clip(CircleShape)
+            .background(if (enabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.primary.copy(alpha = 0.5f))
+            .clickable(enabled = enabled, onClick = onClick),
+        contentAlignment = Alignment.Center
+    ) {
+        Icon(
+            painter = painterResource(icon),
+            contentDescription = null,
+            tint = if (enabled) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f),
+            modifier = Modifier.size(18.dp)
+        )
+    }
+}
+
+
+@Preview(showBackground = true, showSystemUi = true)
 @Composable
 private fun PreviewCartFoodCard() {
-    CartFoodCard(
-        cartFood = FoodInCart(
-            foodId = "1",
-            foodName = "Pizza Margherita",
-            quantity = 2,
-            unitPrice = 8.5,
-            totalPrice = 17.0,
-            imageUrl = null
-        ),
-        onIncrease = {},
-        onDecrease = {},
-        onDelete = {}
-    )
+    K2TTheme(darkTheme = true) {
+        CartFoodCard(
+            cartFood = FoodInCart(
+                foodId = "f1",
+                foodName = "Cappuccino",
+                quantity = 2,
+                unitPrice = 26.0,
+                totalPrice = 52.0,
+                imageUrl = "https://via.placeholder.com/150" // Replace with a real placeholder if possible
+            ),
+            onIncrease = {},
+            onDecrease = {},
+            onDelete = {}
+        )
+    }
 }

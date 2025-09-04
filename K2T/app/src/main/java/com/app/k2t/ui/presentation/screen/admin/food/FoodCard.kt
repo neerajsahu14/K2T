@@ -32,7 +32,8 @@ fun FoodCard(
     modifier: Modifier = Modifier,
     onEditClick: (Food) -> Unit = {},
     onDeleteClick: (Food) -> Unit = {},
-    onToggleAvailability: (Food) -> Unit = {}
+    onToggleAvailability: (Food) -> Unit = {},
+    onFoodClick: () -> Unit = {}  // Added parameter for food card click
 ) {
     var showDeleteDialog by remember { mutableStateOf(false) }
 
@@ -41,7 +42,8 @@ fun FoodCard(
         colors = CardDefaults.elevatedCardColors(
             containerColor = MaterialTheme.colorScheme.surface
         ),
-        elevation = CardDefaults.elevatedCardElevation(defaultElevation = 3.dp)
+        elevation = CardDefaults.elevatedCardElevation(defaultElevation = 3.dp),
+        onClick = onFoodClick  // Make the whole card clickable to navigate to food details
     ) {
         // Food Image Section with Status Badge
         Box {
@@ -188,26 +190,6 @@ fun FoodCard(
 
             // Details Section
             food.details?.let { details ->
-                // Prep Time
-                details.prepTime?.let { prepTime ->
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.padding(vertical = 4.dp)
-                    ) {
-                        Icon(
-                            painter = painterResource(R.drawable.schedule),
-                            contentDescription = null,
-                            modifier = Modifier.size(18.dp),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            text = prepTime,
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                }
 
                 // Ingredients
                 details.ingredients?.let { ingredients ->
@@ -348,7 +330,6 @@ private fun PreviewFoodCard() {
         foodId = "1",
         name = "Margherita Pizza",
         details = Details(
-            prepTime = "15 minutes",
             ingredients = listOf("Tomato", "Mozzarella", "Basil", "Olive Oil"),
         ),
         price = 12.99,

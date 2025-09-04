@@ -22,5 +22,6 @@ data class User(
     val tableId: String? = null, // Only for table
     val isActive: Boolean = true, // All roles
     @ServerTimestamp
-    var createdAt: Date? = null // All roles
+    var createdAt: Date? = null, // All roles
+    val isValid : Boolean = true
 )

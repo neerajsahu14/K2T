@@ -81,4 +81,28 @@ class OrderItemRepositoryImpl(private val db: FirebaseFirestore) : OrderItemRepo
             .document(itemId)
             .update("chefId", chefId)
     }
+
+    override fun getRecentOrderItems(): Flow<List<OrderItem>> = kotlinx.coroutines.flow.callbackFlow {
+        // Calculate midnight today
+        val calendar = java.util.Calendar.getInstance()
+        calendar.set(java.util.Calendar.HOUR_OF_DAY, 0)
+        calendar.set(java.util.Calendar.MINUTE, 0)
+        calendar.set(java.util.Calendar.SECOND, 0)
+        calendar.set(java.util.Calendar.MILLISECOND, 0)
+        val midnight = calendar.time
+
+        val listenerRegistration = orderItemsCollection
+            .whereGreaterThanOrEqualTo("addedAt", midnight)
+            .addSnapshotListener { snapshot, exception ->
+                if (exception != null) {
+                    close(exception)
+                    return@addSnapshotListener
+                }
+                if (snapshot != null) {
+                    val orderItems = snapshot.toObjects(OrderItem::class.java)
+                    trySend(orderItems)
+                }
+            }
+        awaitClose { listenerRegistration.remove() }
+    }
 }

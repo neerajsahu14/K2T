@@ -37,9 +37,15 @@ class FoodRepositoryImpl(private val db: FirebaseFirestore) : FoodRepository {
     }
 
     override suspend fun deleteFood(foodId: String): Boolean {
+        // Soft delete implementation - update valid flag rather than actually deleting
         return try {
-            foodCollection.document(foodId).delete().await()
-            true
+            val foodDoc = foodCollection.document(foodId).get().await()
+            val food = foodDoc.toObject(Food::class.java)
+            food?.let {
+                it.valid = false
+                foodCollection.document(foodId).set(it).await()
+                true
+            } ?: false
         } catch (e: Exception) {
             false
         }
@@ -62,15 +68,18 @@ class FoodRepositoryImpl(private val db: FirebaseFirestore) : FoodRepository {
     }
 
     override suspend fun getAllFoods(): Flow<List<Food>> = callbackFlow {
-        val listener = foodCollection.addSnapshotListener { snapshot, exception ->
-            if (exception != null) {
-                close(exception)
-                return@addSnapshotListener
+        val listener = foodCollection
+            .whereEqualTo("valid", true) // Changed from isValid to valid
+            .addSnapshotListener { snapshot, exception ->
+                if (exception != null) {
+                    close(exception)
+                    return@addSnapshotListener
+                }
+                trySend(snapshot?.toObjects(Food::class.java) ?: emptyList())
             }
-            trySend(snapshot?.toObjects(Food::class.java) ?: emptyList())
-        }
         awaitClose { listener.remove() }
     }
+
     override suspend fun upsertFood(food: Food): Boolean {
         return try {
             val docRef = if (food.foodId.isNullOrBlank()) {
