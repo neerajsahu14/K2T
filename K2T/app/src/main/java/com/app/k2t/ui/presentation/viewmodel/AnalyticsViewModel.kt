@@ -20,7 +20,6 @@ import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
-import java.util.*
 
 class AnalyticsViewModel : ViewModel(), KoinComponent {
     private val TAG = "AnalyticsViewModel"
@@ -229,7 +228,7 @@ class AnalyticsViewModel : ViewModel(), KoinComponent {
                 // Calculate category performance
                 Log.d(TAG, "Calculating category performance")
                 _categoryPerformance.value = analyticsService.calculateCategoryPerformance(
-                    orderItems, foods, categories
+                    orderItems, categories
                 )
 
                 // Calculate other metrics

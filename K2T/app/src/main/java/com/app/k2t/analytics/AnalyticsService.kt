@@ -6,6 +6,7 @@ import com.app.k2t.firebase.model.Order
 import com.app.k2t.firebase.model.OrderItem
 import com.app.k2t.firebase.utils.OrderStatus
 import java.util.*
+import kotlin.collections.forEach
 import kotlin.math.min
 
 class AnalyticsService {
@@ -187,7 +188,6 @@ class AnalyticsService {
     // Category performance analysis
     fun calculateCategoryPerformance(
         orderItems: List<OrderItem>,
-        foods: List<Food>,
         categories: List<FoodCategory>
     ): List<CategoryPerformance> {
         val categoryMap = mutableMapOf<String, CategoryPerformance>()
@@ -197,7 +197,7 @@ class AnalyticsService {
         categories.forEach { category ->
             category.foodsIds.forEach { foodId ->
                 val currentCategories = foodToCategoriesMap[foodId] ?: emptyList()
-                foodToCategoriesMap[foodId] = currentCategories + category.id
+                foodToCategoriesMap[foodId] = currentCategories + category.id!!
             }
         }
 

@@ -1,8 +1,10 @@
 package com.app.k2t.ui.presentation.viewmodel
 
-import android.util.Log
+import android.content.Context
+import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.app.k2t.cloudinary.CloudinaryManager
 import com.app.k2t.firebase.model.FoodCategory
 import com.app.k2t.firebase.repositoryimpl.FoodCategoryRepositoryImpl
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -114,6 +116,16 @@ class FoodCategoryViewModel : ViewModel() , KoinComponent {
                 _error.value = "Category not found."
             }
             _loading.value = false
+        }
+    }
+
+    suspend fun uploadCategoryImage(context: Context, imageUri: Uri): String? {
+        return try {
+            val url = CloudinaryManager(context).uploadImage(imageUri)
+            url
+        } catch (e: Exception) {
+            _error.value = "Image upload failed: ${e.message}"
+            null
         }
     }
 

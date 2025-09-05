@@ -1,12 +1,11 @@
 package com.app.k2t.ui.presentation.screen.admin.foodcategory
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
@@ -16,15 +15,18 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.app.k2t.firebase.model.FoodCategory
-import com.app.k2t.ui.presentation.viewmodel.FoodCategoryViewModel
-import org.koin.androidx.compose.koinViewModel
+import coil.compose.AsyncImage
 import com.app.k2t.R
+import com.app.k2t.firebase.model.FoodCategory
 import com.app.k2t.ui.presentation.screen.admin.food.LoadingScreen
+import com.app.k2t.ui.presentation.viewmodel.FoodCategoryViewModel
+import kotlinx.coroutines.launch
+import org.koin.androidx.compose.koinViewModel
+import androidx.compose.runtime.collectAsState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -37,6 +39,9 @@ fun CreateAndUpdateCategory(
     var name by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
     var existingFoodsIds by remember { mutableStateOf<List<String>>(emptyList()) }
+    var createdAt by remember { mutableStateOf<com.google.firebase.Timestamp?>(null) }
+    var imageUri by remember { mutableStateOf<Uri?>(null) }
+    var imageUrl by remember { mutableStateOf("") }
     val isLoading by viewModel.loading.collectAsState()
     val error by viewModel.error.collectAsState()
 
@@ -49,17 +54,28 @@ fun CreateAndUpdateCategory(
     val isFormValid = isNameValid && isDescriptionValid
 
     val scrollState = rememberScrollState()
+    val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
 
     // Load existing category data if editing
-    LaunchedEffect(categoryId) {
+    LaunchedEffect(categoryId, viewModel.categories.collectAsState().value) {
         if (categoryId != null) {
             val category = viewModel.categories.value.find { it.id == categoryId }
             if (category != null) {
                 name = category.name
-                description = category.description ?: ""
+                description = category.description
                 existingFoodsIds = category.foodsIds
+                createdAt = category.createdAt
+                imageUrl = category.imageUrl
             }
         }
+    }
+
+    // Image picker launcher
+    val imagePickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        imageUri = uri
     }
 
     if (isLoading) {
@@ -181,7 +197,7 @@ fun CreateAndUpdateCategory(
 
                 SectionHeader("Category Image")
 
-                // Future enhancement placeholder: Image upload
+                // Image picker and preview
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -193,27 +209,35 @@ fun CreateAndUpdateCategory(
                             MaterialTheme.colorScheme.outline,
                             RoundedCornerShape(12.dp)
                         )
-                        .clickable { /* Future image picker */ },
+                        .clickable { imagePickerLauncher.launch("image/*") },
                     contentAlignment = Alignment.Center
                 ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Icon(
-                            painter = painterResource(R.drawable.addphoto),
-                            contentDescription = "Add Photo",
-                            modifier = Modifier.size(48.dp),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    if (imageUri != null) {
+                        AsyncImage(
+                            model = imageUri,
+                            contentDescription = "Selected Image",
+                            modifier = Modifier.fillMaxSize()
                         )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text(
-                            text = "Tap to select an image",
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                    } else if (imageUrl.isNotEmpty()) {
+                        AsyncImage(
+                            model = imageUrl,
+                            contentDescription = "Category Image",
+                            modifier = Modifier.fillMaxSize()
                         )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text(
-                            text = "(Image upload coming soon)",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
-                        )
+                    } else {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Icon(
+                                painter = painterResource(R.drawable.addphoto),
+                                contentDescription = "Add Photo",
+                                modifier = Modifier.size(48.dp),
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                text = "Tap to select an image",
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
                     }
                 }
 
@@ -224,21 +248,31 @@ fun CreateAndUpdateCategory(
                     onClick = {
                         isFormSubmitted = true
                         if (isFormValid) {
-                            val category = FoodCategory(
-                                id = categoryId ?: System.currentTimeMillis().toString(),
-                                name = name,
-                                description = description,
-                                imageUrl = "",
-                                priority = 0,
-                                foodsIds = if (categoryId != null) existingFoodsIds else emptyList(),
-                                createdAt = null
-                            )
-                            if (categoryId == null) {
-                                viewModel.createCategory(category)
-                            } else {
-                                viewModel.updateCategory(category)
+                            coroutineScope.launch {
+                                var finalImageUrl = imageUrl
+                                if (imageUri != null) {
+                                    val uploadedUrl = viewModel.uploadCategoryImage(context, imageUri!!)
+                                    if (uploadedUrl != null) {
+                                        finalImageUrl = uploadedUrl
+                                    }
+                                }
+                                val category = FoodCategory(
+                                    id = if (categoryId == null) "" else categoryId,
+                                    name = name,
+                                    description = description,
+                                    imageUrl = finalImageUrl,
+                                    priority = 0,
+                                    foodsIds = if (categoryId != null) existingFoodsIds else emptyList(),
+                                    createdAt = if (categoryId == null) com.google.firebase.Timestamp.now() else createdAt,
+                                    valid = true
+                                )
+                                if (categoryId == null) {
+                                    viewModel.createCategory(category)
+                                } else {
+                                    viewModel.updateCategory(category)
+                                }
+                                onDismiss()
                             }
-                            onDismiss()
                         }
                     },
                     modifier = Modifier

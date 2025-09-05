@@ -6,7 +6,6 @@ import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.tasks.await
 
 /**
@@ -50,10 +49,13 @@ class FoodCategoryRepositoryImpl : FoodCategoryRepository {
         awaitClose { listener.remove() }
     }
 
+    /**
+     * Creates a new food category. Firestore document ID is generated automatically.
+     */
     override suspend fun createFoodCategory(foodCategory: FoodCategory) {
-        // Ensure new categories are valid by default
-        val categoryToSave = foodCategory.copy(valid = true)
-        collection.document(categoryToSave.id).set(categoryToSave).await()
+        // Let Firestore generate the document ID and do NOT store the id field in the document
+        val data = foodCategory.copy(id = null, valid = true)
+        collection.add(data).await()
     }
 
     override suspend fun getFoodCategoryById(id: String): FoodCategory? {
@@ -62,7 +64,10 @@ class FoodCategoryRepositoryImpl : FoodCategoryRepository {
     }
 
     override suspend fun updateFoodCategory(foodCategory: FoodCategory) {
-        collection.document(foodCategory.id).set(foodCategory).await()
+        // Use the document ID as the key, but do NOT store the id field in the document
+        val id = foodCategory.id ?: throw IllegalArgumentException("Category id is null")
+        val data = foodCategory.copy(id = null)
+        collection.document(id).set(data).await()
     }
 
     /**
