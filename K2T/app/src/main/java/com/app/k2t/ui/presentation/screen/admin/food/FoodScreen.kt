@@ -186,7 +186,7 @@ fun FoodScreen(
                     state = lazyListState,
                     modifier = Modifier.fillMaxSize(),
                     verticalArrangement = Arrangement.spacedBy(16.dp),
-                    contentPadding = PaddingValues(vertical = 12.dp)
+                    contentPadding = PaddingValues(vertical = 12.dp, horizontal = 12.dp)
                 ) {
                     items(
                         items = filteredFoods,

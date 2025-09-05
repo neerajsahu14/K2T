@@ -2,10 +2,10 @@ package com.app.k2t.ui.presentation.screen.admin.food
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -14,8 +14,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.app.k2t.firebase.model.Food
 import com.app.k2t.ui.presentation.screen.shared.FoodDetailsContent
-import com.app.k2t.ui.theme.K2TTheme
 import com.app.k2t.ui.presentation.viewmodel.FoodViewModel
+import com.app.k2t.ui.theme.K2TTheme
 import org.koin.androidx.compose.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -53,14 +53,13 @@ fun FoodDetailsScreen(
     // Delete confirmation dialog
     if (showDeleteConfirmation) {
         AlertDialog(
-            onDismissRequest = { showDeleteConfirmation = false },
+            onDismissRequest = { },
             title = { Text("Confirm Deletion") },
             text = { Text("Are you sure you want to delete '${food?.name}'? This action cannot be undone.") },
             confirmButton = {
                 Button(
                     onClick = {
                         foodViewModel.deleteFood(foodId) // Assumes deleteFood handles isDeletingOrSaving state
-                        showDeleteConfirmation = false
                         onDeleteSuccess()
                     },
                     colors = ButtonDefaults.buttonColors(
@@ -71,7 +70,7 @@ fun FoodDetailsScreen(
                 }
             },
             dismissButton = {
-                OutlinedButton(onClick = { showDeleteConfirmation = false }) {
+                OutlinedButton(onClick = { }) {
                     Text("Cancel")
                 }
             }
@@ -92,11 +91,9 @@ fun FoodDetailsScreen(
         )
     }
 
-    // The main content area.
-    // The outer Scaffold (from navigation) should provide appropriate background color and padding.
     Column(
         modifier = modifier
-            .fillMaxSize() // Default padding, adjust as needed or rely on outer Scaffold
+            .fillMaxSize()
     ) {
         when {
             isLoading -> {
@@ -227,10 +224,8 @@ private fun EmptyState(message: String) {
 @Composable
 private fun PreviewFoodDetailsScreenLoading() {
     K2TTheme {
-        // Simulate loading state for preview
         val mockViewModel = koinViewModel<FoodViewModel>() // Basic Koin VM for preview
         FoodDetailsScreen(foodId = "preview", foodViewModel = mockViewModel)
-        // To truly preview loading, you'd mock the ViewModel's getFood to delay or set isLoading
     }
 }
 
@@ -238,11 +233,7 @@ private fun PreviewFoodDetailsScreenLoading() {
 @Composable
 private fun PreviewFoodDetailsScreenEmpty() {
      K2TTheme {
-        // Simulate empty state for preview
-        val mockViewModel = koinViewModel<FoodViewModel>()
-        // How to make food null and isLoading false for preview?
-        // One way: provide a mock VM that returns null food and isLoading false.
-        // For simplicity, directly showing EmptyState might be easier for isolated preview.
+
         EmptyState(message = "Food not found or has been deleted.")
     }
 }
@@ -252,9 +243,6 @@ private fun PreviewFoodDetailsScreenEmpty() {
 private fun PreviewFoodDetailsScreenWithData() {
     K2TTheme {
          val food = Food(foodId = "1", name = "Preview Pasta", price = 12.99, isVeg = true, availability = true, details = com.app.k2t.firebase.model.Details(description = "Delicious preview pasta with rich tomato sauce.", ingredients = listOf("Pasta", "Tomato Sauce", "Cheese")), nutrition = com.app.k2t.firebase.model.Nutrition(servingSize = "250g", calories = 450.0))
-        // This preview will be limited as it doesn't run LaunchedEffect with a real VM
-        // For a full data preview, you'd need a more elaborate mock VM setup.
-        // Or, more simply, preview FoodDetailsContent directly.
         FoodDetailsContent(food = food, scrollState = rememberScrollState(), isAdminView = true, showNutritionDetails = true)
     }
 }

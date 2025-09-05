@@ -1,6 +1,7 @@
 package com.app.k2t.firebase.model
 
 import com.google.firebase.Timestamp
+import com.google.firebase.firestore.DocumentId
 
 /**
  * Represents a category of food items.
@@ -8,7 +9,7 @@ import com.google.firebase.Timestamp
  * This data class holds information about a specific food category, including its
  * identifier, display name, visual representation, and associated food items.
  *
- * @property id The unique identifier for this food category.
+ * @property id The unique identifier for this food category. This is stored as a field in Firestore and must NOT use @DocumentId.
  * @property name The display name of the food category (e.g., "Appetizers", "Desserts").
  * @property imageUrl The URL of an image representing this food category.
  * @property description A brief description of the food category.
@@ -23,7 +24,8 @@ import com.google.firebase.Timestamp
  * @property valid A [Boolean] indicating the [category] is deleted  or not.
  */
 data class FoodCategory(
-    val id: String = "",
+    @DocumentId
+    val id: String? = null,
     val name: String = "",
     val imageUrl: String = "",
     val description: String = "",

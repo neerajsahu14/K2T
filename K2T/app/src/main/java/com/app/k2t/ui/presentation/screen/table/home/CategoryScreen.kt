@@ -202,7 +202,7 @@ fun CategoryScreen(
                         items(visibleCategories) { category ->
                             CategoryCard(
                                 category = category,
-                                onClick = { onCategoryClick(category.id) }
+                                onClick = { onCategoryClick(category.id!!) }
                             )
                         }
                     }

@@ -1,9 +1,17 @@
+import java.util.Properties
+
+val properties = Properties()
+val localPropertiesFile = rootProject.file("local.properties")
+if (localPropertiesFile.exists()) {
+    properties.load(localPropertiesFile.inputStream())
+}
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.google.gms.google.services)
-    id("com.google.devtools.ksp")
+    alias(libs.plugins.devtool.ksp)
 }
 
 android {
@@ -18,16 +26,15 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-    }
-    defaultConfig {
-        buildConfigField("String", "CLOUD_NAME", "\"${System.getenv("CLOUD_NAME") ?: ""}\"")
-        buildConfigField("String", "API_KEY", "\"${System.getenv("API_KEY") ?: ""}\"")
-        buildConfigField("String", "API_SECRET", "\"${System.getenv("API_SECRET") ?: ""}\"")
+
+        buildConfigField("String", "CLOUD_NAME", "\"${properties.getProperty("CLOUD_NAME") ?: ""}\"")
+        buildConfigField("String", "API_KEY", "\"${properties.getProperty("API_KEY") ?: ""}\"")
+        buildConfigField("String", "API_SECRET", "\"${properties.getProperty("API_SECRET") ?: ""}\"")
     }
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
